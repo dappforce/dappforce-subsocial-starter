@@ -1,0 +1,12 @@
+# docker-compose.yml
+version: "3"
+services:
+  subsocial-ui:
+    container_name: subsocial_ui
+    image: dappforce/subsocial-ui:latest
+    restart: on-failure
+    ports:
+      - "3000:3000"
+    networks:
+      backend:
+        ipv4_address: 172.15.0.2

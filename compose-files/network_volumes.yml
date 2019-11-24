@@ -1,0 +1,15 @@
+version: "3"
+
+networks:
+  backend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.15.0.1/24
+
+volumes:
+  chain_data_alice:
+  chain_data_bob:
+  postgres_data:
+  es_data:

@@ -1,0 +1,38 @@
+version: "3"
+services:
+  subsocial_node_alice:
+    container_name: subsocial_substrate_node_alice
+    image: dappforce/subsocial-node:latest
+    restart: on-failure
+    command: ./subsocial-node
+      --chain=local
+      --validator
+      --key //Alice
+      -d /data
+      --ws-external
+    volumes:
+      - chain_data_alice:/data
+    ports:
+      - "9944:9944"
+    networks:
+      backend:
+        ipv4_address: 172.15.0.21
+
+  subsocial_node_bob:
+    container_name: subsocial_substrate_node_bob
+    image: dappforce/subsocial-node:latest
+    restart: on-failure
+    command: ./subsocial-node
+      --chain=local
+      --validator
+      --key //Bob
+      -d /data
+      --port 30344
+      --rpc-port 9935
+      --ws-port 9945
+      --bootnodes '/ip4/172.15.0.21/tcp/30333/p2p/QmZ7cDTT4DAesod6gSqUup14dEfhHMyMcuhmfdzBAjqSCF'
+    volumes:
+      - chain_data_bob:/data
+    networks:
+      backend:
+        ipv4_address: 172.15.0.22
