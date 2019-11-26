@@ -1,9 +1,8 @@
 # docker-compose.yml
 version: "3"
 services:
-  subsocial-ui:
-    container_name: subsocial_ui
-    image: dappforce/subsocial-ui:latest
+  web-ui:
+    image: dappforce/subsocial-ui:$WEBUI_VERSION
     restart: on-failure
     ports:
       - "3000:3000"

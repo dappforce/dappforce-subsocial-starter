@@ -1,8 +1,7 @@
 version: "3"
 services:
-  subsocial_node_alice:
-    container_name: subsocial_substrate_node_alice
-    image: dappforce/subsocial-node:latest
+  node_alice:
+    image: dappforce/subsocial-node:$NODE_VERSION
     restart: on-failure
     command: ./subsocial-node
       --chain=local
@@ -18,9 +17,8 @@ services:
       backend:
         ipv4_address: 172.15.0.21
 
-  subsocial_node_bob:
-    container_name: subsocial_substrate_node_bob
-    image: dappforce/subsocial-node:latest
+  node_bob:
+    image: dappforce/subsocial-node:$NODE_VERSION
     restart: on-failure
     command: ./subsocial-node
       --chain=local
