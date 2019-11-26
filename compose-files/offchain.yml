@@ -1,0 +1,52 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:$POSTGRES_VERSION
+    restart: on-failure
+    environment:
+      POSTGRES_DB: subsocial
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: 1986
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      backend:
+        ipv4_address: 172.15.0.4
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTICEARCH_VERSION
+    restart: on-failure
+    environment:
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      MAX_MAP_COUNT: "64000"
+      discovery.type: "single-node"
+      cluster.name: "subsocial-cluster"
+      node.name: "subsocial-node"
+      network.host: "172.15.0.5"
+      http.port: "9200"
+      http.cors.enabled: "true"
+      http.cors.allow-credentials: "true"
+      http.cors.allow-origin: "172.15.0.2:3000"
+      http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization,Access-Control-Allow-Headers,Accept"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      backend:
+        ipv4_address: 172.15.0.5
+
+  offchain:
+    image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
+    depends_on:
+      - postgres
+      - elasticsearch
+    restart: on-failure
+    environment:
+      - NODE_ENV=production
+      - SUBSTRATE_HOST=172.15.0.21
+      - PGHOST=172.15.0.4
+      - ES_NODE_URL=http://172.15.0.5:9200
+    ports:
+      - "3001:3001"
+    networks:
+      backend:
+        ipv4_address: 172.15.0.3
