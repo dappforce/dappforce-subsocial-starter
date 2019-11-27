@@ -12,7 +12,7 @@ export PROJECT_NAME="subsocial"
 export FORCEPULL="false"
 
 export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
-export ELASTICEARCH_VERSION=${ELASTICEARCH_VERSION:-7.4.1}
+export ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-7.4.1}
 export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
 export NODE_VERSION=${NODE_VERSION:-latest}
 export WEBUI_VERSION=${WEBUI_VERSION:-latest}
@@ -93,11 +93,11 @@ while :; do
             time (
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
 
-                printf "\nHold on, waiting 30sec for Elasticsearch, starting Offchain...\n"
+                printf "\nHold on, waiting 30 sec for Elasticsearch, starting Offchain...\n"
                 eval docker container restart ${PROJECT_NAME}'_offchain_1'
                 eval docker container restart -t 20 ${PROJECT_NAME}'_offchain_1'
             )
-            printf "Containers are ready.\nWeb-UI is accessible on localhost:3000\n"
+            printf "Containers are ready.\nWeb UI is accessible on localhost:3000\n"
             break
     esac
     shift
