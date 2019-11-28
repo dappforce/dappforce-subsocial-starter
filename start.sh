@@ -23,6 +23,13 @@ COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/substrate_node.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
 
+# colors
+COLOR_R="\033[0;31m"    # red
+COLOR_Y="\033[0;33m"    # yellow
+
+# reset
+COLOR_RESET="\033[00m"
+
 while :; do
     case $1 in
         --force-pull)
@@ -69,7 +76,7 @@ while :; do
         # Cleaning switches
         #################################################
         --prune)
-            printf $COLOR_R'Doing a deep clean ...\n\n'$COLOR_RESET
+            printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
             eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
             docker volume rm ${PROJECT_NAME}_chain_data_alice || true
             docker volume rm ${PROJECT_NAME}_chain_data_bob || true
@@ -78,6 +85,21 @@ while :; do
 
             printf "\nProject pruned successfully\n"
             break;
+            ;;
+        #################################################
+        # Specify branch
+        #################################################
+        --tag)
+            if [ -z $2 ] || [[ $2 == *'--'* ]] ; then
+                printf $COLOR_R'WARN: --tag must be provided with a tag name argument\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                export OFFCHAIN_VERSION=$2
+                export NODE_VERSION=$2
+                export WEBUI_VERSION=$2
+                printf $COLOR_Y'Switched to components by tag '$2'\n\n'$COLOR_RESET
+                shift
+            fi
             ;;
         --) # End of all options.
             shift
@@ -94,8 +116,8 @@ while :; do
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
 
                 printf "\nHold on, waiting 30 sec for Elasticsearch, starting Offchain...\n"
-                eval docker container restart ${PROJECT_NAME}'_offchain_1'
-                eval docker container restart -t 20 ${PROJECT_NAME}'_offchain_1'
+                eval docker container restart ${PROJECT_NAME}'_offchain_1' > /dev/null
+                eval docker container restart -t 20 ${PROJECT_NAME}'_offchain_1' > /dev/null
             )
             printf "Containers are ready.\nWeb UI is accessible on localhost:3000\n"
             break
