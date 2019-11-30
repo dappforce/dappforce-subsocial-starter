@@ -30,6 +30,8 @@ services:
       http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization,Access-Control-Allow-Headers,Accept"
     volumes:
       - es_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
     networks:
       backend:
         ipv4_address: 172.15.0.5
@@ -42,9 +44,9 @@ services:
     restart: on-failure
     environment:
       - NODE_ENV=production
-      - SUBSTRATE_HOST=172.15.0.21
+      - SUBSTRATE_URL=$SUBSTRATE_URL
       - PGHOST=172.15.0.4
-      - ES_NODE_URL=http://172.15.0.5:9200
+      - ES_NODE_URL=$ELASTIC_URL
     ports:
       - "3001:3001"
     networks:

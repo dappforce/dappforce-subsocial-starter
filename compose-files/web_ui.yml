@@ -4,6 +4,10 @@ services:
   web-ui:
     image: dappforce/subsocial-ui:$WEBUI_VERSION
     restart: on-failure
+    environment:
+      - SUBSTRATE_URL=$SUBSTRATE_URL
+      - OFFCHAIN_URL=$OFFCHAIN_URL
+      - ELASTIC_URL=$ELASTIC_URL
     ports:
       - "3000:3000"
     networks:

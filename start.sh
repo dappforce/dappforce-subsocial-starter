@@ -11,11 +11,17 @@ COMPOSE_DIR="${DIR}/compose-files"
 export PROJECT_NAME="subsocial"
 export FORCEPULL="false"
 
+# Version variables
 export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
 export ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-7.4.1}
 export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
 export NODE_VERSION=${NODE_VERSION:-latest}
 export WEBUI_VERSION=${WEBUI_VERSION:-latest}
+
+# URL variables
+export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://172.15.0.21:9944/}
+export OFFCHAIN_URL=${OFFCHAIN_URL:-http://127.0.0.1:3001/v1}
+export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
 
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
@@ -98,6 +104,39 @@ while :; do
                 export NODE_VERSION=$2
                 export WEBUI_VERSION=$2
                 printf $COLOR_Y'Switched to components by tag '$2'\n\n'$COLOR_RESET
+                shift
+            fi
+            ;;
+        #################################################
+        # Modify Web UI .env variables
+        #################################################
+        --substrate-url)
+            if [ -z $2 ] || [[ $2 =~ --.* ]] ; then
+                printf $COLOR_R'WARN: --substrate-url must be provided with an IP:PORT argument\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                export SUBSTRATE_URL='ws://'$2'/'
+                printf $COLOR_Y'Substrate URL set to ws://'$2'/\n\n'$COLOR_RESET
+                shift
+            fi
+            ;;
+        --offchain-url)
+            if [ -z $2 ] || ![[ $2 =~ https?://.* ]] ; then
+                printf $COLOR_R'WARN: --offchain-url must be provided with URL argument\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                export OFFCHAIN_URL=$2
+                printf $COLOR_Y'Offchain URL set to '$2'\n\n'$COLOR_RESET
+                shift
+            fi
+            ;;
+        --elastic-url)
+            if [ -z $2 ] || ![[ $2 =~ https?://.* ]] ; then
+                printf $COLOR_R'WARN: --elastic-url must be provided with an URL argument\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                export ELASTIC_URL=$2
+                printf $COLOR_Y'Elasticsearch URL set to '$2'\n\n'$COLOR_RESET
                 shift
             fi
             ;;
