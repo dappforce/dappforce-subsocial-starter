@@ -4,6 +4,7 @@ set -e
 pushd . > /dev/null
 
 # The following lines ensure we run from the docker folder
+IP=$(curl -s ifconfig.me)
 DIR=`git rev-parse --show-toplevel`
 COMPOSE_DIR="${DIR}/compose-files"
 
@@ -19,10 +20,10 @@ export NODE_VERSION=${NODE_VERSION:-latest}
 export WEBUI_VERSION=${WEBUI_VERSION:-latest}
 
 # URL variables
-export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://127.0.0.1:9944}
-export OFFCHAIN_URL=${OFFCHAIN_URL:-http://127.0.0.1:3001/v1}
-export ELASTIC_URL=${ELASTIC_URL:-http://127.0.0.1:9200}
-export WEBUI_IP=${WEBUI_IP:-127.0.0.1:3000}
+export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://$IP:9944}
+export OFFCHAIN_URL=${OFFCHAIN_URL:-http://$IP:3001/v1}
+export ELASTIC_URL=${ELASTIC_URL:-http://$IP:9200}
+export WEBUI_IP=${WEBUI_IP:-$IP:3000}
 
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
@@ -194,6 +195,19 @@ while :; do
                 parse_substrate_extra_opts $2
                 printf "$SUBSTRATE_NODE_EXTRA_OPTS"';'
             fi
+            ;;
+
+        #################################################
+        # Start project locally
+        #################################################
+
+        --local)
+            export SUBSTRATE_URL='ws://127.0.0.1:9944'
+            export OFFCHAIN_URL='http://127.0.0.1:3001/v1'
+            export ELASTIC_URL='http://127.0.0.1:9200'
+            export WEBUI_IP='127.0.0.1:3000'
+
+            printf $COLOR_Y'Starting locally...\n\n'$COLOR_RESET
             ;;
 
         #################################################
