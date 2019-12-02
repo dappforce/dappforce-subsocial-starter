@@ -173,11 +173,11 @@ while :; do
 
         --webui-ip)
             if [ -z $2 ] || [[ $2 =~ --.* ]] ; then
-                printf $COLOR_R'WARN: --web-ip must be provided with an IP:PORT argument\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --webui-ip must be provided with an IP:PORT argument\n'$COLOR_RESET "$1" >&2
                 break;
             else
                 export WEBUI_IP=$2
-                printf $COLOR_Y'Visible Web UI ip set to '$2'\n\n'$COLOR_RESET
+                printf $COLOR_Y'Web UI IP set to '$2'\n\n'$COLOR_RESET
                 shift
             fi
             ;;
