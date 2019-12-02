@@ -6,7 +6,7 @@ services:
     command: ./subsocial-node
       --chain=local
       --validator
-      --key //Alice
+      --alice
       -d /data
       --ws-external
     volumes:
@@ -23,7 +23,7 @@ services:
     command: ./subsocial-node
       --chain=local
       --validator
-      --key //Bob
+      --bob
       -d /data
       --port 30344
       --rpc-port 9935
