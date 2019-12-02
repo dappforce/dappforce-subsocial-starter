@@ -4,12 +4,13 @@ services:
   web-ui:
     image: dappforce/subsocial-ui:$WEBUI_VERSION
     restart: on-failure
+    command: bash -c "yarn build && yarn start-prod"
     environment:
       - SUBSTRATE_URL=$SUBSTRATE_URL
       - OFFCHAIN_URL=$OFFCHAIN_URL
       - ELASTIC_URL=$ELASTIC_URL
     ports:
-      - "3000:80"
+      - "80:80"
     networks:
       backend:
         ipv4_address: 172.15.0.2
