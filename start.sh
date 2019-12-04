@@ -111,7 +111,7 @@ while :; do
             printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
             eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
 
-            if [[ $2 == "+volume" ]] ; then
+            if [[ $2 == "+volumes" ]] ; then
                 # docker volume rm ${PROJECT_NAME}_chain_data_alice || true
                 # docker volume rm ${PROJECT_NAME}_chain_data_bob || true
                 docker volume rm ${PROJECT_NAME}_es_data || true
@@ -232,20 +232,26 @@ while :; do
             time (
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
 
-                eval docker container stop ${PROJECT_NAME}'_offchain_1' > /dev/null
-                printf "\nHold on, waiting for Elasticsearch, starting Offchain...\n"
-                until curl -s ${ELASTIC_URL} > /dev/null ; do
-                    sleep 2
-                done
-                printf 'Started container '
-                eval docker container start ${PROJECT_NAME}'_offchain_1'
+                if [[ $COMPOSE_FILES =~ 'offchain' ]] ; then
+                    eval docker container stop ${PROJECT_NAME}'_offchain_1' > /dev/null
+                    printf "\nHold on, waiting for Elasticsearch, starting Offchain...\n"
+                    until curl -s ${ELASTIC_URL} > /dev/null ; do
+                        sleep 2
+                    done
+                    printf 'Started container '
+                    eval docker container start ${PROJECT_NAME}'_offchain_1'
+                fi
 
-                printf "\nWaiting for Web UI to build...\n"
-                until curl -s ${WEBUI_IP} > /dev/null ; do
-                    sleep 2
-                done 
+                if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
+                    printf "\nWaiting for Web UI to build...\n"
+                    until curl -s ${WEBUI_IP} > /dev/null ; do
+                        sleep 2
+                    done 
+
+                    printf 'Web UI is accessible on '$WEBUI_IP'\n'
+                fi
             )
-            printf 'Containers are ready.\nWeb UI is accessible on '$WEBUI_IP'\n'
+            printf 'Containers are ready.\n'
             break
 
     esac
