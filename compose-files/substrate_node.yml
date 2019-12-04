@@ -10,7 +10,7 @@ services:
       -d /data
       --ws-external
     volumes:
-      - chain_data_alice:/data
+      - $VOLUME_LOCATION/chain_data/alice:/data
     ports:
       - "9944:9944"
     networks:
@@ -30,7 +30,7 @@ services:
       --ws-port 9945
       --bootnodes '/ip4/172.15.0.21/tcp/30333/p2p/QmZ7cDTT4DAesod6gSqUup14dEfhHMyMcuhmfdzBAjqSCF'
     volumes:
-      - chain_data_bob:/data
+      - $VOLUME_LOCATION/chain_data/bob:/data
     networks:
       backend:
         ipv4_address: 172.15.0.22

@@ -47,8 +47,11 @@ services:
       - SUBSTRATE_URL=$SUBSTRATE_URL
       - PGHOST=172.15.0.4
       - ES_NODE_URL=$ELASTIC_URL
+    volumes:
+      - $VOLUME_LOCATION/ipfs_data:/data
     ports:
       - "3001:3001"
+      - "127.0.0.1:5002:5002"
     networks:
       backend:
         ipv4_address: 172.15.0.3
