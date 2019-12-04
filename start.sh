@@ -111,7 +111,7 @@ while :; do
             printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
             eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
 
-            if [[ $2 == "--allvolumes" ]] ; then
+            if [[ $2 == "all-volumes" ]] ; then
                 # docker volume rm ${PROJECT_NAME}_chain_data_alice || true
                 # docker volume rm ${PROJECT_NAME}_chain_data_bob || true
                 docker volume rm ${PROJECT_NAME}_es_data || true
