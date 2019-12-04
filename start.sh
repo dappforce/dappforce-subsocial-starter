@@ -11,6 +11,7 @@ COMPOSE_DIR="${DIR}/compose-files"
 # Default props
 export PROJECT_NAME="subsocial"
 export FORCEPULL="false"
+export VOLUME_LOCATION=~/subsocial_data
 
 # Version variables
 export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
@@ -109,10 +110,13 @@ while :; do
         --prune)
             printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
             eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
-            docker volume rm ${PROJECT_NAME}_chain_data_alice || true
-            docker volume rm ${PROJECT_NAME}_chain_data_bob || true
-            docker volume rm ${PROJECT_NAME}_es_data || true
-            docker volume rm ${PROJECT_NAME}_postgres_data || true
+
+            if [[ $2 == "+volume" ]] ; then
+                # docker volume rm ${PROJECT_NAME}_chain_data_alice || true
+                # docker volume rm ${PROJECT_NAME}_chain_data_bob || true
+                docker volume rm ${PROJECT_NAME}_es_data || true
+                docker volume rm ${PROJECT_NAME}_postgres_data || true
+            fi
 
             printf "\nProject pruned successfully\n"
             break;
