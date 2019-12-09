@@ -1,4 +1,8 @@
 # Subsocial Starter by [DappForce](https://github.com/dappforce)
+Starts entire Subsocial stack with one shell script. 
+
+
+## Requirements
 
 You should have Linux or macOS with [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/) installed.
 
@@ -17,8 +21,8 @@ cd dappforce-subsocial-starter
 
 The [start.sh](start.sh) script comes with a set of options for customizing project startup.
 
-| Argument                     | Description                                                                                     |
-| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| Argument                 | Description                                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- |
 | `--global`               | Binds the project parts to global IP visible on ifconfig.me
 | `--force-pull`           | Pull Docker images tagged _latest_ if only `--tag` isn't specified
 | `--tag`                  | Specify Docker images tag
@@ -32,7 +36,7 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--substrate-url`        | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944`
 | `--offchain-url`         | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001`
 | `--elastic-url`          | Specify Elasticsearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200`
-| `--webui-ip`            | Specify Web UI ip address. Example: `./start.sh --global --substrate-url http://172.15.0.2`
+| `--webui-ip`             | Specify Web UI ip address. Example: `./start.sh --global --substrate-url http://172.15.0.2`
 
 ### Web UI
 
@@ -43,7 +47,7 @@ By default it will start one container for Web UI. If it is running, you can ope
 This one can be managed with `--no-webui` and `--only-webui` flags.
 
 | Container name     | External Port | Local URL        | Description   |
-|--------------------|---------------|------------------|---------------|
+| ------------------ | ------------- | ---------------- | ------------- |
 | `subsocial-web-ui` | `80`          | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui)
 
 ### Offchain
@@ -53,7 +57,7 @@ By default it will start three containers: PostgreSQL, Elasticsearch and offchai
 This one can be managed with `--no-offchain` and `--only-offchain` flags.
 
 | Container name            | External Port   | Local URL                | Description         |
-|---------------------------|-----------------|--------------------------|---------------------|
+| ------------------------- | --------------- | ------------------------ | ------------------- |
 | `subsocial-offchain`      | `3001`          | http://localhost:3001/v1 | [Subsocial Offchain](https://github.com/dappforce/dappforce-subsocial-offchain)
 | `subsocial-elasticsearch` | `9200`          | http://localhost:9200    | [Elasticsearch](https://www.elastic.co/what-is/elasticsearch)
 | `subsocial-postgres`      |                 |                          | [PostgreSQL](https://www.postgresql.org/about/)
@@ -65,7 +69,7 @@ By  default it will start two local validator nodes in Docker containers: Alice 
 Additional options can be added using `--substrate-extra-opts` (beta).
 This one can be managed with `--no-substrate` and `--only-substrate` flags.
 
-| Container name           | External Port  | Local URL             | Description                  |
-|-------------------------|-----------------|-----------------------|------------------------------|
+| Container name          | External Port   | Local URL             | Description                  |
+| ----------------------- | --------------- | --------------------- | ---------------------------- |
 | `subsocial-node-alice`  | `9944`          | http://localhost:9944 |
 | `subsocial-node-bob`    |                 |                       | Local chain of Substrate Node
