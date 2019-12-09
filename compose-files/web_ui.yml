@@ -3,6 +3,7 @@ version: "3"
 services:
   web-ui:
     image: dappforce/subsocial-ui:$WEBUI_VERSION
+    container_name: subsocial-web-ui
     restart: on-failure
     command: bash -c "yarn build && yarn start-prod"
     environment:

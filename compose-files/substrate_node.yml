@@ -2,6 +2,7 @@ version: "3"
 services:
   node_alice:
     image: dappforce/subsocial-node:$NODE_VERSION
+    container_name: subsocial-node-alice
     restart: on-failure
     command: ./subsocial-node
       --chain=local
@@ -19,6 +20,7 @@ services:
 
   node_bob:
     image: dappforce/subsocial-node:$NODE_VERSION
+    container_name: subsocial-node-bob
     restart: on-failure
     command: ./subsocial-node
       --chain=local
