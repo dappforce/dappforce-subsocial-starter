@@ -2,6 +2,7 @@ version: "3"
 services:
   postgres:
     image: postgres:$POSTGRES_VERSION
+    container_name: subsocial-postgres
     restart: on-failure
     environment:
       POSTGRES_DB: subsocial
@@ -15,6 +16,7 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTICSEARCH_VERSION
+    container_name: subsocial-elasticsearch
     restart: on-failure
     environment:
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
@@ -26,7 +28,8 @@ services:
       http.port: "9200"
       http.cors.enabled: "true"
       http.cors.allow-credentials: "true"
-      http.cors.allow-origin: $WEBUI_IP
+      http.cors.allow-origin: "*"
+      http.cors.allow-methods: "GET"
       http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization,Access-Control-Allow-Headers,Accept"
     volumes:
       - es_data:/usr/share/elasticsearch/data
@@ -38,6 +41,7 @@ services:
 
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
+    container_name: subsocial-offchain
     depends_on:
       - postgres
       - elasticsearch
