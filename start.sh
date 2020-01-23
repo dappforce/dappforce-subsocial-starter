@@ -26,6 +26,15 @@ export OFFCHAIN_URL=${OFFCHAIN_URL:-http://127.0.0.1:3001}
 export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
 export WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
 
+# Container names
+export CONT_POSTGRES=${PROJECT_NAME}-postgres
+export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
+export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
+export CONT_NODE_ALICE=${PROJECT_NAME}-node-alice
+export CONT_NODE_BOB=${PROJECT_NAME}-node-bob
+export CONT_WEBUI=${PROJECT_NAME}-web-ui
+
+# Compose files list
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
@@ -237,13 +246,13 @@ while :; do
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
 
                 if [[ $COMPOSE_FILES =~ 'offchain' ]] ; then
-                    eval docker container stop ${PROJECT_NAME}'_offchain_1' > /dev/null
+                    eval docker container stop ${CONT_OFFCHAIN} > /dev/null
                     printf "\nHold on, waiting for Elasticsearch, starting Offchain...\n"
                     until curl -s ${ELASTIC_URL} > /dev/null ; do
                         sleep 2
                     done
                     printf 'Started container '
-                    eval docker container start ${PROJECT_NAME}'_offchain_1'
+                    eval docker container start ${CONT_OFFCHAIN}
                 fi
 
                 if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
