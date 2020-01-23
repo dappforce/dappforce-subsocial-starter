@@ -2,7 +2,7 @@ version: "3"
 services:
   postgres:
     image: postgres:$POSTGRES_VERSION
-    container_name: subsocial-postgres
+    container_name: $CONT_POSTGRES
     restart: on-failure
     environment:
       POSTGRES_DB: subsocial
@@ -16,7 +16,7 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTICSEARCH_VERSION
-    container_name: subsocial-elasticsearch
+    container_name: $CONT_ELASTICSEARCH
     restart: on-failure
     environment:
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
@@ -41,7 +41,7 @@ services:
 
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
-    container_name: subsocial-offchain
+    container_name: $CONT_OFFCHAIN
     depends_on:
       - postgres
       - elasticsearch
