@@ -1,12 +1,19 @@
 # Subsocial Starter by [DappForce](https://github.com/dappforce)
 Starts entire Subsocial stack with one shell script. 
 
-
 ## Requirements
 
 You should have Linux or macOS with [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/) installed.
 
-## Get Started
+To test that Docker installed correctly, try to run the next commands - none of them should fail.
+
+```bash
+docker images
+docker ps
+docker run --rm -it -p 80:80 nginx
+```
+
+## Get started
 
 If you're new to Subsocial, it's best to start with the defaults:
 
@@ -16,6 +23,17 @@ cd dappforce-subsocial-starter
 
 ./start.sh 
 ```
+
+### Possible issues on Linux
+
+If you are using Linux and having permission issues with Docker, then you may want to do this:
+
+```bash
+sudo systemctl enable docker
+sudo systemctl disable docker
+```
+
+Then logout and log back in and all the Docker commands you find online should work fine without sudo.
 
 ## Options
 
@@ -50,9 +68,9 @@ This one can be managed with `--no-webui` and `--only-webui` flags.
 | ------------------ | ------------- | ---------------- | ------------- |
 | `subsocial-web-ui` | `80`          | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui)
 
-### Offchain
+### Offchain storage
 
-By default it will start three containers: PostgreSQL, Elasticsearch and offchain (events handler, API) itself.
+By default it will start three containers: PostgreSQL, ElasticSearch and offchain (Substrate events handler, Subsocail API) itself.
 
 This one can be managed with `--no-offchain` and `--only-offchain` flags.
 
@@ -62,7 +80,7 @@ This one can be managed with `--no-offchain` and `--only-offchain` flags.
 | `subsocial-elasticsearch` | `9200`          | http://localhost:9200    | [Elasticsearch](https://www.elastic.co/what-is/elasticsearch)
 | `subsocial-postgres`      |                 |                          | [PostgreSQL](https://www.postgresql.org/about/)
 
-### Substrate Node
+### Substrate node
 
 By  default it will start two local validator nodes in Docker containers: Alice and Bob. Offchain and others connect to Alice's node, because it's external.
 
