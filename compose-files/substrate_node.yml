@@ -5,11 +5,12 @@ services:
     container_name: $CONT_NODE_ALICE
     restart: on-failure
     command: ./subsocial-node
-      --chain=local
-      --validator
-      --alice
       -d /data
+      --chain=local
+      --alice
       --ws-external
+      --telemetry-url ws://telemetry.polkadot.io:1024
+      --validator
     volumes:
       - $VOLUME_LOCATION/chain_data/alice:/data
     ports:
@@ -23,13 +24,15 @@ services:
     container_name: $CONT_NODE_BOB
     restart: on-failure
     command: ./subsocial-node
-      --chain=local
-      --validator
-      --bob
       -d /data
+      --chain=local
+      --bob
       --port 30344
-      --rpc-port 9935
       --ws-port 9945
+      --rpc-port 9935
+      --telemetry-url ws://telemetry.polkadot.io:1024
+      --validator
+      --pruning 'archive'
       --bootnodes '/ip4/172.15.0.21/tcp/30333/p2p/QmZ7cDTT4DAesod6gSqUup14dEfhHMyMcuhmfdzBAjqSCF'
     volumes:
       - $VOLUME_LOCATION/chain_data/bob:/data
