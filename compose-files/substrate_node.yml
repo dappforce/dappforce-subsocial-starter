@@ -11,6 +11,7 @@ services:
       --ws-external
       --telemetry-url ws://telemetry.polkadot.io:1024
       --validator
+      --pruning 'archive'
     volumes:
       - $VOLUME_LOCATION/chain_data/alice:/data
     ports:
@@ -32,7 +33,6 @@ services:
       --rpc-port 9935
       --telemetry-url ws://telemetry.polkadot.io:1024
       --validator
-      --pruning 'archive'
       --bootnodes '/ip4/172.15.0.21/tcp/30333/p2p/QmZ7cDTT4DAesod6gSqUup14dEfhHMyMcuhmfdzBAjqSCF'
     volumes:
       - $VOLUME_LOCATION/chain_data/bob:/data
