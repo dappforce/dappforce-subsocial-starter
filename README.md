@@ -1,3 +1,4 @@
+
 # Subsocial Starter by [DappForce](https://github.com/dappforce)
 Starts entire Subsocial stack with one shell script. 
 
@@ -48,13 +49,16 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--no-offchain`          | Start Subsocial stack without offchain storage and Elasticsearch
 | `--no-substrate`         | Start Subsocial stack without Substrate node
 | `--no-webui`             | Start Subsocial stack without Web UI
+| `--no-apps`              | Start Subsocial stack without JS Apps
 | `--only-offchain`        | Start (or update) only offchain container
 | `--only-substrate`       | Start (or update) only Substrate node's container
 | `--only-webui`           | Start (or update) only Web UI container
+| `--only-apps`            | Start (or update) only JS Apps container
 | `--substrate-url`        | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944`
 | `--offchain-url`         | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001`
 | `--elastic-url`          | Specify Elasticsearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200`
 | `--webui-ip`             | Specify Web UI ip address. Example: `./start.sh --global --substrate-url http://172.15.0.2`
+| `--apps-url`             | Specify JS Apps URL. Example: `./start.sh --global --apps-url http://172.15.0.6:3002`
 
 ### Web UI
 
@@ -67,6 +71,18 @@ This one can be managed with `--no-webui` and `--only-webui` flags.
 | Container name     | External Port | Local URL        | Description   |
 | ------------------ | ------------- | ---------------- | ------------- |
 | `subsocial-web-ui` | `80`          | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui)
+
+### JS Apps
+
+By default it will start one container for JS Apps. If it is running, you can successfully go to the 'Advanced' tab in the Web UI side-menu:
+
+[http://localhost:3002/](http://localhost:3002)
+
+This one can be managed with `--no-apps` and `--only-apps` flags.
+
+| Container name     | External Port | Local URL             | Description     |
+| ------------------ | ------------- | --------------------- | --------------- |
+| `subsocial-apps` | `3002`          | http://localhost:3002 | [Subsocial Apps](https://github.com/dappforce/dappforce-subsocial-apps)
 
 ### Offchain storage
 
