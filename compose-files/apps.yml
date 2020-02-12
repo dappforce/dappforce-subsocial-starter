@@ -1,0 +1,14 @@
+# docker-compose.yml
+version: "3"
+services:
+  apps:
+    image: dappforce/subsocial-apps:$APPS_VERSION
+    container_name: $CONT_APPS
+    restart: on-failure
+    environment:
+      - SUBSTRATE_URL=$SUBSTRATE_URL
+    ports:
+      - "3002:3002"
+    networks:
+      backend:
+        ipv4_address: 172.15.0.6

@@ -19,12 +19,14 @@ export ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-7.4.1}
 export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
 export NODE_VERSION=${NODE_VERSION:-latest}
 export WEBUI_VERSION=${WEBUI_VERSION:-latest}
+export APPS_VERSION=${APPS_VERSION:-latest}
 
 # URL variables
 export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://172.15.0.21:9944}
 export OFFCHAIN_URL=${OFFCHAIN_URL:-http://172.15.0.3:3001}
 export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
 export WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
+export APPS_URL=${APPS_URL:-http://172.15.0.6:3002}
 
 # Container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
@@ -33,6 +35,7 @@ export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
 export CONT_NODE_ALICE=${PROJECT_NAME}-node-alice
 export CONT_NODE_BOB=${PROJECT_NAME}-node-bob
 export CONT_WEBUI=${PROJECT_NAME}-web-ui
+export CONT_APPS=${PROJECT_NAME}-apps
 
 # Compose files list
 COMPOSE_FILES=""
@@ -40,6 +43,7 @@ COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/substrate_node.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
+COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
 
 SUBSTRATE_NODE_EXTRA_OPTS="${SUBSTRATE_NODE_EXTRA_OPTS:-}"
 
@@ -138,6 +142,11 @@ while :; do
             printf $COLOR_Y'Starting without Web UI...\n\n'$COLOR_RESET
             ;;
 
+        --no-apps)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/apps.yml/}"
+            printf $COLOR_Y'Starting without JS Apps...\n\n'$COLOR_RESET
+            ;;
+
         #################################################
         # Include-only switches
         #################################################
@@ -161,6 +170,13 @@ while :; do
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
             printf $COLOR_Y'Starting only Web UI...\n\n'$COLOR_RESET
+            ;;
+
+        --only-apps)
+            COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
+            printf $COLOR_Y'Starting only JS Apps...\n\n'$COLOR_RESET
             ;;
 
         #################################################
@@ -207,6 +223,17 @@ while :; do
             else
                 export WEBUI_IP=$2
                 printf $COLOR_Y'Web UI IP set to '$2'\n\n'$COLOR_RESET
+                shift
+            fi
+            ;;
+
+        --apps-url)
+            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
+                printf $COLOR_R'WARN: --apps-url must be provided with an URL argument\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                export APPS_URL=$2
+                printf $COLOR_Y'JS Apps URL set to '$2'\n\n'$COLOR_RESET
                 shift
             fi
             ;;

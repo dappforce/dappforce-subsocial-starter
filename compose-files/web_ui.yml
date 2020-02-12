@@ -10,6 +10,7 @@ services:
       - SUBSTRATE_URL=$SUBSTRATE_URL
       - OFFCHAIN_URL=$OFFCHAIN_URL
       - ELASTIC_URL=$ELASTIC_URL
+      - APPS_URL=$APPS_URL
     ports:
       - "80:80"
     networks:
