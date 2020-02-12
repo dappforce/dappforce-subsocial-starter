@@ -81,6 +81,7 @@ while :; do
             export OFFCHAIN_URL='http://'$IP':3001'
             export ELASTIC_URL='http://'$IP':9200'
             export WEBUI_IP=$IP':80'
+            export APPS_URL='http://'$IP':3002'
 
             printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
             ;;
