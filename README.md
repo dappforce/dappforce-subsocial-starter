@@ -86,7 +86,7 @@ This one can be managed with `--no-apps` and `--only-apps` flags.
 
 ### Offchain storage
 
-By default it will start three containers: PostgreSQL, ElasticSearch and offchain (Substrate events handler, Subsocail API) itself.
+By default it will start three containers: PostgreSQL, ElasticSearch and offchain (Substrate events handler, Subsocial API) itself.
 
 This one can be managed with `--no-offchain` and `--only-offchain` flags.
 
