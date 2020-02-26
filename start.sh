@@ -26,7 +26,7 @@ export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://172.15.0.21:9944}
 export OFFCHAIN_URL=${OFFCHAIN_URL:-http://172.15.0.3:3001}
 export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
 export WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
-export APPS_URL=${APPS_URL:-http://172.15.0.6:3002}
+export APPS_URL=${APPS_URL:-http://127.0.0.1:3002}
 
 # Container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
@@ -113,8 +113,6 @@ while :; do
 
             # Include volumes pruning
             if [[ $2 == "all-volumes" ]] ; then
-                # docker volume rm ${PROJECT_NAME}_chain_data_alice || true
-                # docker volume rm ${PROJECT_NAME}_chain_data_bob || true
                 docker volume rm ${PROJECT_NAME}_es_data || true
                 docker volume rm ${PROJECT_NAME}_postgres_data || true
                 shift
