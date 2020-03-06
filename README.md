@@ -17,7 +17,7 @@ docker ps
 docker run --rm -it -p 80:80 nginx
 ```
 
-## Get started
+## Get Started
 
 If you're new to Subsocial, it's best to start with the defaults:
 
@@ -75,7 +75,7 @@ This one can be managed with `--no-webui` and `--only-webui` flags.
 | ------------------ | ------------- | ---------------- | ------------- |
 | `subsocial-web-ui` | `80`          | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui)
 
-### JS Apps
+### Blockchain Explorer (aka JS Apps)
 
 By default it will start one container for JS Apps. If it is running, you can successfully go to the 'Advanced' tab in the Web UI side-menu:
 
@@ -87,7 +87,7 @@ This one can be managed with `--no-apps` and `--only-apps` flags.
 | ------------------ | ------------- | --------------------- | --------------- |
 | `subsocial-apps` | `3002`          | http://localhost:3002 | [Subsocial Apps](https://github.com/dappforce/dappforce-subsocial-apps)
 
-### Offchain storage
+### Off-chain Storage
 
 By default it will start three containers: PostgreSQL, ElasticSearch and offchain (Substrate events handler, Subsocial API) itself.
 
@@ -99,7 +99,7 @@ This one can be managed with `--no-offchain` and `--only-offchain` flags.
 | `subsocial-elasticsearch` | `9200`          | http://localhost:9200    | [Elasticsearch](https://www.elastic.co/what-is/elasticsearch)
 | `subsocial-postgres`      |                 |                          | [PostgreSQL](https://www.postgresql.org/about/)
 
-### Substrate node
+### Substrate Node
 
 By  default it will start two local validator nodes in Docker containers: Alice and Bob. Offchain and others connect to Alice's node, because it's external.
 
@@ -110,3 +110,8 @@ This one can be managed with `--no-substrate` and `--only-substrate` flags.
 | ----------------------- | --------------- | --------------------- | ---------------------------- |
 | `subsocial-node-alice`  | `9944`          | http://localhost:9944 |
 | `subsocial-node-bob`    |                 |                       | Local chain of Substrate Node
+
+
+## License
+
+Subsocial is [GPL 3.0](./LICENSE) licensed.
