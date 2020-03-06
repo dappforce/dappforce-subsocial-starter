@@ -1,6 +1,9 @@
 
 # Subsocial Starter by [DappForce](https://github.com/dappforce)
-Starts entire Subsocial stack with one shell script. 
+
+Starts entire Subsocial stack with one shell script.
+
+To learn more about Subsocial, please visit [Subsocial Network](http://subsocial.network).
 
 ## Requirements
 
