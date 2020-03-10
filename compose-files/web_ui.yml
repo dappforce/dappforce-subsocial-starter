@@ -5,7 +5,6 @@ services:
     image: dappforce/subsocial-ui:$WEBUI_VERSION
     container_name: $CONT_WEBUI
     restart: on-failure
-    command: bash -c "yarn build && yarn start"
     environment:
       - SUBSTRATE_URL=$SUBSTRATE_URL
       - OFFCHAIN_URL=$OFFCHAIN_URL
