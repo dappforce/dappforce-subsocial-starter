@@ -20,6 +20,7 @@ export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
 export NODE_VERSION=${NODE_VERSION:-latest}
 export WEBUI_VERSION=${WEBUI_VERSION:-latest}
 export APPS_VERSION=${APPS_VERSION:-latest}
+export PROXY_VERSION=${PROXY_VERSION:-latest}
 
 # URL variables
 export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://172.15.0.21:9944}
@@ -36,6 +37,7 @@ export CONT_NODE_ALICE=${PROJECT_NAME}-node-alice
 export CONT_NODE_BOB=${PROJECT_NAME}-node-bob
 export CONT_WEBUI=${PROJECT_NAME}-web-ui
 export CONT_APPS=${PROJECT_NAME}-apps
+export CONT_PROXY=${PROJECT_NAME}-proxy
 
 # Compose files list
 COMPOSE_FILES=""
@@ -282,7 +284,7 @@ while :; do
                 fi
 
                 if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
-                    printf "\nWaiting for Web UI to build...\n"
+                    printf "\nWaiting for Web UI to start...\n"
                     until curl -s ${WEBUI_IP} > /dev/null ; do
                         sleep 2
                     done 
