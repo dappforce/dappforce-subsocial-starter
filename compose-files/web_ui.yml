@@ -10,8 +10,17 @@ services:
       - OFFCHAIN_URL=$OFFCHAIN_URL
       - ELASTIC_URL=$ELASTIC_URL
       - APPS_URL=$APPS_URL
+    networks:
+      backend:
+        ipv4_address: 172.15.0.2
+
+  nginx:
+    build: ../nginx
+    image: dappforce/subsocial-proxy:$PROXY_VERSION
+    container_name: $CONT_PROXY
+    restart: on-failure
     ports:
       - "80:80"
     networks:
       backend:
-        ipv4_address: 172.15.0.2
+        ipv4_address: 172.15.0.7
