@@ -10,8 +10,6 @@ services:
       - OFFCHAIN_URL=$OFFCHAIN_URL
       - ELASTIC_URL=$ELASTIC_URL
       - APPS_URL=$APPS_URL
-    ports:
-      - "3000:3000"
     networks:
       backend:
         ipv4_address: 172.15.0.2
