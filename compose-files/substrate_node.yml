@@ -11,7 +11,7 @@ services:
       --ws-external
       --telemetry-url ws://telemetry.polkadot.io:1024
       --validator
-      --pruning 'archive'
+      --pruning archive
     volumes:
       - $VOLUME_LOCATION/chain_data/alice:/data
     ports:
