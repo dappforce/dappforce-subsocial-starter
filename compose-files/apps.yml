@@ -7,8 +7,6 @@ services:
     restart: on-failure
     environment:
       - SUBSTRATE_URL=$SUBSTRATE_URL
-    ports:
-      - "3002:80"
     networks:
       backend:
         ipv4_address: 172.15.0.6
