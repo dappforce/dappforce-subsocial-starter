@@ -6,16 +6,22 @@ services:
     restart: on-failure
     command: ./subsocial-node
       -d /data
-      --chain=local
+      --chain df
       --alice
+      --port 30333
+      --ws-port 9944
+      --rpc-port 9933
+      --rpc-cors all
       --ws-external
+      --rpc-external
       --telemetry-url ws://telemetry.polkadot.io:1024
-      --validator
       --pruning archive
     volumes:
       - $VOLUME_LOCATION/chain_data/alice:/data
     ports:
       - "9944:9944"
+      - "9933:9933"
+      - "30333:30333"
     networks:
       backend:
         ipv4_address: 172.15.0.21
@@ -23,17 +29,19 @@ services:
   node_bob:
     image: dappforce/subsocial-node:$NODE_VERSION
     container_name: $CONT_NODE_BOB
+    depends_on:
+      - node_alice
     restart: on-failure
     command: ./subsocial-node
       -d /data
-      --chain=local
+      --chain df
       --bob
-      --port 30344
-      --ws-port 9945
-      --rpc-port 9935
-      --telemetry-url ws://telemetry.polkadot.io:1024
       --validator
-      --bootnodes '/ip4/172.15.0.21/tcp/30333/p2p/QmZ7cDTT4DAesod6gSqUup14dEfhHMyMcuhmfdzBAjqSCF'
+      --port 30334
+      --ws-port 9945
+      --rpc-port 9934
+      --telemetry-url ws://telemetry.polkadot.io:1024
+      --bootnodes '/ip4/172.15.0.21/tcp/30333/p2p/Qme5aPxwEB4xK2ohz3wex8x6XihMmJp487MqFtuEh9XdcE'
     volumes:
       - $VOLUME_LOCATION/chain_data/bob:/data
     networks:

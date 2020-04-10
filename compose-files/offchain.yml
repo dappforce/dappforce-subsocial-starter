@@ -39,23 +39,36 @@ services:
       backend:
         ipv4_address: 172.15.0.5
 
+  ipfs:
+    image: ipfs/go-ipfs:$IPFS_VERSION
+    container_name: $CONT_IPFS
+    restart: on-failure
+    volumes:
+      - $VOLUME_LOCATION/ipfs/staging:/export
+      - $VOLUME_LOCATION/ipfs/data:/data/ipfs
+    ports:
+      - "8080:8080"
+    networks:
+      backend:
+        ipv4_address: 172.15.0.8
+
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
     container_name: $CONT_OFFCHAIN
     depends_on:
       - postgres
       - elasticsearch
+      - ipfs
     restart: on-failure
     environment:
       - NODE_ENV=production
       - SUBSTRATE_URL=$SUBSTRATE_URL
       - PGHOST=172.15.0.4
       - ES_NODE_URL=$ELASTIC_URL
-    volumes:
-      - $VOLUME_LOCATION/ipfs_data:/data
+      - IPFS_URL=$IPFS_URL
     ports:
       - "3001:3001"
-      - "127.0.0.1:5002:5002"
+      - "3011:3011"
     networks:
       backend:
         ipv4_address: 172.15.0.3

@@ -3,7 +3,7 @@ set -e
 
 pushd . > /dev/null
 
-# The following lines ensure we run from the docker folder
+# The following lines ensure we run from the root
 DIR=`git rev-parse --show-toplevel`
 COMPOSE_DIR="${DIR}/compose-files"
 
@@ -16,6 +16,7 @@ export VOLUME_LOCATION=~/subsocial_data
 # Version variables
 export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
 export ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-7.4.1}
+export IPFS_VERSION=${IPFS_VERSION:-master-latest}
 export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
 export NODE_VERSION=${NODE_VERSION:-latest}
 export WEBUI_VERSION=${WEBUI_VERSION:-latest}
@@ -26,12 +27,15 @@ export PROXY_VERSION=${PROXY_VERSION:-latest}
 export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://172.15.0.21:9944}
 export OFFCHAIN_URL=${OFFCHAIN_URL:-http://172.15.0.3:3001}
 export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
+export IPFS_URL=${IPFS_URL:-/ip4/172.15.0.8/tcp/5001}
+export IPFS_READONLY_URL=${IPFS_READONLY_URL:-/ip4/172.15.0.8/tcp/8080}
 export WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
-export APPS_URL=${APPS_URL:-http://127.0.0.1:3002}
+export APPS_URL=${APPS_URL:-http://127.0.0.1/bc}
 
 # Container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
 export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
+export CONT_IPFS=${PROJECT_NAME}-ipfs
 export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
 export CONT_NODE_ALICE=${PROJECT_NAME}-node-alice
 export CONT_NODE_BOB=${PROJECT_NAME}-node-bob
@@ -83,7 +87,8 @@ while :; do
             export OFFCHAIN_URL='http://'$IP':3001'
             export ELASTIC_URL='http://'$IP':9200'
             export WEBUI_IP=$IP':80'
-            export APPS_URL='http://'$IP':3002'
+            export APPS_URL='http://'$IP'/bc'
+            export IPFS_READONLY_URL='/ip4/'$IP'/tcp/8080'
 
             printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
             ;;
@@ -103,6 +108,7 @@ while :; do
                 export OFFCHAIN_VERSION=$2
                 export NODE_VERSION=$2
                 export WEBUI_VERSION=$2
+                export APPS_VERSION=$2
                 printf $COLOR_Y'Switched to components by tag '$2'\n\n'$COLOR_RESET
                 shift
             fi
@@ -274,13 +280,25 @@ while :; do
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
 
                 if [[ $COMPOSE_FILES =~ 'offchain' ]] ; then
-                    eval docker container stop ${CONT_OFFCHAIN} > /dev/null
-                    printf "\nHold on, waiting for Elasticsearch, starting Offchain...\n"
+
+                    # Elasticsearch
+                    printf "\nHold on, starting Offchain:\nSetting up Elasticsearch...\n"
+                    docker container stop ${CONT_OFFCHAIN} > /dev/null
                     until curl -s ${ELASTIC_URL} > /dev/null ; do
                         sleep 2
                     done
-                    printf 'Started container '
-                    eval docker container start ${CONT_OFFCHAIN}
+
+                    # IPFS
+                    printf "Setting up IPFS...\n"
+                    docker exec ${CONT_IPFS} \
+                        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+                    docker exec ${CONT_IPFS} \
+                        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "POST"]'
+                    docker restart ${CONT_IPFS} > /dev/null
+
+                    # Offchain itself
+                    docker container start ${CONT_OFFCHAIN} > /dev/null
+                    printf 'Offchain successfully started\n'
                 fi
 
                 if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
