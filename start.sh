@@ -282,7 +282,7 @@ while :; do
                 if [[ $COMPOSE_FILES =~ 'offchain' ]] ; then
 
                     # Elasticsearch
-                    printf "\nHold on, starting Offchain:\nSetting up Elasticsearch...\n"
+                    printf "\nHold on, starting Offchain:\nSetting up ElasticSearch...\n"
                     docker container stop ${CONT_OFFCHAIN} > /dev/null
                     until curl -s ${ELASTIC_URL} > /dev/null ; do
                         sleep 2
