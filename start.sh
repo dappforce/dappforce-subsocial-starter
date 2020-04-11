@@ -293,7 +293,7 @@ while :; do
                     docker exec ${CONT_IPFS} \
                         ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
                     docker exec ${CONT_IPFS} \
-                        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "POST"]'
+                        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "POST", "PUT"]'
                     docker restart ${CONT_IPFS} > /dev/null
 
                     # Offchain itself
