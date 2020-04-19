@@ -34,6 +34,26 @@ cd dappforce-subsocial-starter
 ./start.sh 
 ```
 
+### Launch Substrate-v2 based Subsocial
+
+First of all, you have to clone a starter repo:
+```bash
+git clone git@github.com:dappforce/dappforce-subsocial-starter.git
+cd dappforce-subsocial-starter 
+```
+
+There are two ways of starting Subsocial.
+If you want to test locally, then go with:
+```bash
+./start.sh --tag df-v2
+```
+If you want to launch your own global Subsocial network:
+```bash
+./start.sh --tag df-v2 --global
+```
+
+If you want to disable some parts of Subsocial, run offchain (i.e) only, specify custom URLs, etc., then you can use flags below.
+
 ### Possible issues on Linux
 
 If you are using Linux and having permission issues with Docker, then you may want to do this:
@@ -69,6 +89,14 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--webui-ip`             | Specify Web UI ip address. Example: `./start.sh --global --substrate-url http://172.15.0.2`
 | `--apps-url`             | Specify JS Apps URL. Example: `./start.sh --global --apps-url http://172.15.0.6:3002`
 
+### Proxy
+
+By default it will start one nginx container with automatically configured proxy. If it is running, you can open the **Web UI** or **Blockchain Exporer** .
+
+| Container name     | External Port | Local URL        | Description   |
+| ------------------ | ------------- | ---------------- | ------------- |
+| `subsocial-proxy`  | `80`          |
+
 ### Web UI
 
 By default it will start one container for Web UI. If it is running, you can open the **Subsocial** in your browser:
@@ -79,19 +107,19 @@ This one can be managed with `--no-webui` and `--only-webui` flags.
 
 | Container name     | External Port | Local URL        | Description   |
 | ------------------ | ------------- | ---------------- | ------------- |
-| `subsocial-web-ui` | `80`          | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui)
+| `subsocial-web-ui` |               | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui)
 
 ### Blockchain Explorer (aka JS Apps)
 
 By default it will start one container for JS Apps. If it is running, you can successfully go to the 'Advanced' tab in the Web UI side-menu:
 
-[http://localhost:3002/](http://localhost:3002)
+[http://localhost/bc](http://localhost/bc)
 
 This one can be managed with `--no-apps` and `--only-apps` flags.
 
 | Container name     | External Port | Local URL             | Description     |
 | ------------------ | ------------- | --------------------- | --------------- |
-| `subsocial-apps` | `3002`          | http://localhost:3002 | [Subsocial Apps](https://github.com/dappforce/dappforce-subsocial-apps)
+| `subsocial-apps`   |               | http://localhost/bc   | [Subsocial Apps](https://github.com/dappforce/dappforce-subsocial-apps)
 
 ### Off-chain Storage
 
@@ -104,6 +132,7 @@ This one can be managed with `--no-offchain` and `--only-offchain` flags.
 | `subsocial-offchain`      | `3001`          | http://localhost:3001/v1 | [Subsocial Offchain](https://github.com/dappforce/dappforce-subsocial-offchain)
 | `subsocial-elasticsearch` | `9200`          | http://localhost:9200    | [Elasticsearch](https://www.elastic.co/what-is/elasticsearch)
 | `subsocial-postgres`      |                 |                          | [PostgreSQL](https://www.postgresql.org/about/)
+| `subsocial-ipfs`          | `8080`          |                          | [IPFS](https://github.com/ipfs/go-ipfs/blob/master/README.md)
 
 ### Substrate Node
 
@@ -114,8 +143,8 @@ This one can be managed with `--no-substrate` and `--only-substrate` flags.
 
 | Container name          | External Port   | Local URL             | Description                  |
 | ----------------------- | --------------- | --------------------- | ---------------------------- |
-| `subsocial-node-alice`  | `9944`          | http://localhost:9944 |
-| `subsocial-node-bob`    |                 |                       | Local chain of Substrate Node
+| `subsocial-node-alice`  | `9944`          | ws://localhost:9944   | Archive Node
+| `subsocial-node-bob`    |                 |                       | Authority Substrate Node
 
 
 ## License
