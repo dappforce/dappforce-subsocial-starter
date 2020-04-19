@@ -14,7 +14,6 @@ services:
       --rpc-cors all
       --ws-external
       --rpc-external
-      --telemetry-url ws://telemetry.polkadot.io:1024
       --pruning archive
     volumes:
       - $VOLUME_LOCATION/chain_data/alice:/data
@@ -40,9 +39,11 @@ services:
       --port 30334
       --ws-port 9945
       --rpc-port 9934
-      --telemetry-url ws://telemetry.polkadot.io:1024
     volumes:
       - $VOLUME_LOCATION/chain_data/bob:/data
+    ports:
+      - "9934:9934"
+      - "30334:30334"
     networks:
       backend:
         ipv4_address: 172.15.0.22
