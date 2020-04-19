@@ -41,7 +41,6 @@ services:
       --ws-port 9945
       --rpc-port 9934
       --telemetry-url ws://telemetry.polkadot.io:1024
-      --bootnodes '/ip4/172.15.0.21/tcp/30333/p2p/Qme5aPxwEB4xK2ohz3wex8x6XihMmJp487MqFtuEh9XdcE'
     volumes:
       - $VOLUME_LOCATION/chain_data/bob:/data
     networks:
