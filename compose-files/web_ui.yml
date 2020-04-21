@@ -11,6 +11,7 @@ services:
       - ELASTIC_URL=$ELASTIC_URL
       - APPS_URL=$APPS_URL
       - IPFS_URL=$IPFS_READONLY_URL
+      - OFFCHAIN_WS=$OFFCHAIN_WS
     networks:
       backend:
         ipv4_address: 172.15.0.2
