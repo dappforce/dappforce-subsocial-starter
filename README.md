@@ -34,7 +34,7 @@ cd dappforce-subsocial-starter
 ./start.sh 
 ```
 
-### Launch Substrate-v2 based Subsocial
+### Launch Subsocial based on Substrate v2
 
 First of all, you have to clone a starter repo:
 ```bash
@@ -43,16 +43,16 @@ cd dappforce-subsocial-starter
 ```
 
 There are two ways of starting Subsocial.
-If you want to test locally, then go with:
+If you want to play with Subsocial and launch it as an independent node that is not accessible from outside and not connected to the [official](http://subsocial.network) Subsocial network:
 ```bash
 ./start.sh --tag df-v2
 ```
-If you want to launch your own global Subsocial network:
+If you want to launch your own Subsocial network that is accessible from outside, yet independent and not connected to the [official](http://subsocial.network) Subsocial network:
 ```bash
 ./start.sh --tag df-v2 --global
 ```
 
-If you want to disable some parts of Subsocial, run offchain (i.e) only, specify custom URLs, etc., then you can use flags below.
+If you want to launch only some parts of Subsocial (e.g. offchain only) or specify custom URLs of other parts, then you can use flags listed in the section [Options](#options).
 
 ### Possible issues on Linux
 
@@ -91,7 +91,7 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 
 ### Proxy
 
-By default it will start one nginx container with automatically configured proxy. If it is running, you can open the **Web UI** or **Blockchain Exporer** .
+By default it will start one Nginx container with automatically configured proxy. If it is running, you can open the **Web UI** or **Blockchain Explorer** .
 
 | Container name     | External Port | Local URL        | Description   |
 | ------------------ | ------------- | ---------------- | ------------- |
@@ -144,7 +144,7 @@ This one can be managed with `--no-substrate` and `--only-substrate` flags.
 | Container name          | External Port   | Local URL             | Description                  |
 | ----------------------- | --------------- | --------------------- | ---------------------------- |
 | `subsocial-node-alice`  | `9944`          | ws://localhost:9944   | Archive Node
-| `subsocial-node-bob`    |                 |                       | Authority Substrate Node
+| `subsocial-node-bob`    |                 |                       | Authority Node
 
 
 ## License
