@@ -31,6 +31,7 @@ export IPFS_URL=${IPFS_URL:-/ip4/172.15.0.8/tcp/5001}
 export IPFS_READONLY_URL=${IPFS_READONLY_URL:-/ip4/172.15.0.8/tcp/8080}
 export WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
 export APPS_URL=${APPS_URL:-http://127.0.0.1/bc}
+export OFFCHAIN_WS=${OFFCHAIN_WS:-ws://127.0.0.1:3011}
 
 # Container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
@@ -89,6 +90,7 @@ while :; do
             export WEBUI_IP=$IP':80'
             export APPS_URL='http://'$IP'/bc'
             export IPFS_READONLY_URL='/ip4/'$IP'/tcp/8080'
+            export OFFCHAIN_WS='ws://'$IP':3011'
 
             printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
             ;;
