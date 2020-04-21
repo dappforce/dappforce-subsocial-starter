@@ -3,7 +3,7 @@ set -e
 
 pushd . > /dev/null
 
-# The following lines ensure we run from the root
+# The following lines ensure we run from the root folder of this Starter
 DIR=`git rev-parse --show-toplevel`
 COMPOSE_DIR="${DIR}/compose-files"
 
