@@ -1,17 +1,18 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/bash
 
+set -e
 pushd . > /dev/null
 
 # The following lines ensure we run from the root folder of this Starter
-DIR=`git rev-parse --show-toplevel`
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 COMPOSE_DIR="${DIR}/compose-files"
 
 # Default props
-export IP=${IP:-127.0.0.1}
-export PROJECT_NAME="subsocial"
-export FORCEPULL="false"
+IP=${IP:-127.0.0.1}
+PROJECT_NAME="subsocial"
+FORCEPULL="false"
 export VOLUME_LOCATION=~/subsocial_data
+PRUNING_MODE="none"
 
 # Version variables
 export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
@@ -29,7 +30,7 @@ export OFFCHAIN_URL=${OFFCHAIN_URL:-http://172.15.0.3:3001}
 export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
 export IPFS_URL=${IPFS_URL:-/ip4/172.15.0.8/tcp/5001}
 export IPFS_READONLY_URL=${IPFS_READONLY_URL:-/ip4/172.15.0.8/tcp/8080}
-export WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
+WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
 export APPS_URL=${APPS_URL:-http://127.0.0.1/bc}
 export OFFCHAIN_WS=${OFFCHAIN_WS:-ws://127.0.0.1:3011}
 
@@ -49,6 +50,7 @@ COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/substrate_node.yml"
+COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
 
@@ -82,12 +84,12 @@ while :; do
         # Start binding components to global ip
         --global)
 
-            export IP=$(curl -s ifconfig.me)
+            IP=$(curl -s ifconfig.me)
 
             export SUBSTRATE_URL='ws://'$IP':9944'
             export OFFCHAIN_URL='http://'$IP':3001'
             export ELASTIC_URL='http://'$IP':9200'
-            export WEBUI_IP=$IP':80'
+            WEBUI_IP=$IP':80'
             export APPS_URL='http://'$IP'/bc'
             export IPFS_READONLY_URL='/ip4/'$IP'/tcp/8080'
             export OFFCHAIN_WS='ws://'$IP':3011'
@@ -97,7 +99,7 @@ while :; do
 
         # Pull latest changes by tag (ref. 'Version variables' or '--tag')
         --force-pull)
-            export FORCEPULL="true"
+            FORCEPULL="true"
             printf $COLOR_Y'Pulling the latest revision of the used Docker images...\n\n'$COLOR_RESET
             ;;
 
@@ -118,18 +120,9 @@ while :; do
 
         # Delete project's docker containers
         --prune)
-            printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
-            eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
-
-            # Include volumes pruning
-            if [[ $2 == "all-volumes" ]] ; then
-                docker volume rm ${PROJECT_NAME}_es_data || true
-                docker volume rm ${PROJECT_NAME}_postgres_data || true
-                shift
+            if [[ $2 == "all-volumes" ]] ; then PRUNING_MODE=$2
+            else PRUNING_MODE="default"
             fi
-
-            printf "\nProject pruned successfully\n"
-            break;
             ;;
 
         #################################################
@@ -276,45 +269,61 @@ while :; do
             ;;
 
         *)
+            if [ ${PRUNING_MODE} != "none" ]; then
+                printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
+
+                eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
+                if [[ ${PRUNING_MODE} == "all-volumes" ]]; then
+                    docker volume rm ${PROJECT_NAME}_es_data || true
+                    docker volume rm ${PROJECT_NAME}_postgres_data || true
+
+                    printf $COLOR_Y'Cleaning Substrate nodes data, root may be required.\n'$COLOR_RESET
+                    sudo rm -rf $VOLUME_LOCATION || true
+                fi
+
+                printf "\nProject pruned successfully\n"
+                break;
+            fi
+
             printf $COLOR_Y'Starting Subsocial...\n\n'$COLOR_RESET
+            
+            # Cut out subsocial-proxy from images to be pulled
+            PULL_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
             [ ${FORCEPULL} = "true" ] && eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" pull
-            time (
-                eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
+            eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
 
-                if [[ $COMPOSE_FILES =~ 'offchain' ]] ; then
+            if [[ $COMPOSE_FILES =~ 'offchain' ]] ; then
 
-                    # Elasticsearch
-                    printf "\nHold on, starting Offchain:\nSetting up ElasticSearch...\n"
-                    docker container stop ${CONT_OFFCHAIN} > /dev/null
-                    until curl -s ${ELASTIC_URL} > /dev/null ; do
-                        sleep 2
-                    done
+                # Elasticsearch
+                printf "\nHold on, starting Offchain:\nSetting up ElasticSearch...\n"
+                docker container stop ${CONT_OFFCHAIN} > /dev/null
+                until curl -s ${ELASTIC_URL} > /dev/null ; do
+                    sleep 2
+                done
 
-                    # IPFS
-                    printf "Setting up IPFS...\n"
-                    docker exec ${CONT_IPFS} \
-                        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-                    docker exec ${CONT_IPFS} \
-                        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "POST", "PUT"]'
-                    docker restart ${CONT_IPFS} > /dev/null
+                # IPFS
+                printf "Setting up IPFS...\n"
+                docker exec ${CONT_IPFS} \
+                    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+                docker exec ${CONT_IPFS} \
+                    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "POST", "PUT"]'
+                docker restart ${CONT_IPFS} > /dev/null
 
-                    # Offchain itself
-                    docker container start ${CONT_OFFCHAIN} > /dev/null
-                    printf 'Offchain successfully started\n'
-                fi
+                # Offchain itself
+                docker container start ${CONT_OFFCHAIN} > /dev/null
+                printf 'Offchain successfully started\n'
+            fi
 
-                if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
-                    printf "\nWaiting for Web UI to start...\n"
-                    until curl -s ${WEBUI_IP} > /dev/null ; do
-                        sleep 2
-                    done 
+            if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
+                printf "\nWaiting for Web UI to start...\n"
+                until curl -s ${WEBUI_IP} > /dev/null ; do
+                    sleep 2
+                done
 
-                    printf 'Web UI is accessible on '$WEBUI_IP'\n'
-                fi
-            )
+                printf 'Web UI is accessible on '$WEBUI_IP'\n'
+            fi
             printf 'Containers are ready.\n'
             break
-
     esac
     shift
 done
