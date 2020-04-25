@@ -1,0 +1,13 @@
+# docker-compose.yml
+version: "3"
+services:
+  nginx:
+    build: ../nginx
+    image: dappforce/subsocial-proxy:$PROXY_VERSION
+    container_name: $CONT_PROXY
+    restart: on-failure
+    ports:
+      - "80:80"
+    networks:
+      backend:
+        ipv4_address: 172.15.0.7
