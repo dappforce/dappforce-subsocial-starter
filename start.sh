@@ -19,7 +19,7 @@ export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
 # Version variables
 export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
 export ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-7.4.1}
-export IPFS_CLUSTER_VERSION=${IPFS_CLUSTER_VERSION:-master-latest}
+export IPFS_CLUSTER_VERSION=${IPFS_CLUSTER_VERSION:-latest}
 export IPFS_NODE_VERSION=${IPFS_NODE_VERSION:-master-latest}
 export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
 export NODE_VERSION=${NODE_VERSION:-latest}
