@@ -50,7 +50,7 @@ services:
       - $VOLUME_LOCATION/ipfs/daemon/staging:/export
       - $VOLUME_LOCATION/ipfs/daemon/data:/data/ipfs
     ports:
-      - "127.0.0.1:5001:5001"
+      - "4001:4001"
       - "8080:8080"
     networks:
       backend:
@@ -92,7 +92,8 @@ services:
       - SUBSTRATE_URL=$SUBSTRATE_URL
       - PGHOST=172.15.0.4
       - ES_NODE_URL=$ELASTIC_URL
-      - IPFS_URL=$IPFS_URL
+      - IPFS_NODE_URL=$IPFS_READONLY_URL
+      - IPFS_CLUSTER_URL=$IPFS_URL
     ports:
       - "3001:3001"
       - "3011:3011"
