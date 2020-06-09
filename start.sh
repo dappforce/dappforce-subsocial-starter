@@ -13,11 +13,14 @@ PROJECT_NAME="subsocial"
 FORCEPULL="false"
 export VOLUME_LOCATION=~/subsocial_data
 PRUNING_MODE="none"
+# Generated new IPFS Cluster secret in case the ipfs-data was cleaned
+export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
 
 # Version variables
 export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
 export ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-7.4.1}
-export IPFS_VERSION=${IPFS_VERSION:-master-latest}
+export IPFS_CLUSTER_VERSION=${IPFS_CLUSTER_VERSION:-master-latest}
+export IPFS_NODE_VERSION=${IPFS_NODE_VERSION:-master-latest}
 export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
 export NODE_VERSION=${NODE_VERSION:-latest}
 export WEBUI_VERSION=${WEBUI_VERSION:-latest}
@@ -28,8 +31,8 @@ export PROXY_VERSION=${PROXY_VERSION:-latest}
 export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://172.15.0.21:9944}
 export OFFCHAIN_URL=${OFFCHAIN_URL:-http://172.15.0.3:3001}
 export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
-export IPFS_URL=${IPFS_URL:-/ip4/172.15.0.8/tcp/5001}
-export IPFS_READONLY_URL=${IPFS_READONLY_URL:-/ip4/172.15.0.8/tcp/8080}
+export IPFS_URL=${IPFS_URL:-http://172.15.0.9:9094}
+export IPFS_READONLY_URL=${IPFS_READONLY_URL:-http://172.15.0.8:8080}
 WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
 export APPS_URL=${APPS_URL:-http://127.0.0.1/bc}
 export OFFCHAIN_WS=${OFFCHAIN_WS:-ws://127.0.0.1:3011}
@@ -37,7 +40,8 @@ export OFFCHAIN_WS=${OFFCHAIN_WS:-ws://127.0.0.1:3011}
 # Container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
 export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
-export CONT_IPFS=${PROJECT_NAME}-ipfs
+export CONT_IPFS_CLUSTER=${PROJECT_NAME}-ipfs-cluster
+export CONT_IPFS_NODE=${PROJECT_NAME}-ipfs-node
 export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
 export CONT_NODE_ALICE=${PROJECT_NAME}-node-alice
 export CONT_NODE_BOB=${PROJECT_NAME}-node-bob
@@ -274,8 +278,7 @@ while :; do
 
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
                 if [[ ${PRUNING_MODE} == "all-volumes" ]]; then
-                    docker volume rm ${PROJECT_NAME}_es_data || true
-                    docker volume rm ${PROJECT_NAME}_postgres_data || true
+                    eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down -v
 
                     printf $COLOR_Y'Cleaning Substrate nodes data, root may be required.\n'$COLOR_RESET
                     sudo rm -rf $VOLUME_LOCATION || true
@@ -303,11 +306,11 @@ while :; do
 
                 # IPFS
                 printf "Setting up IPFS...\n"
-                docker exec ${CONT_IPFS} \
+                docker exec ${CONT_IPFS_NODE} \
                     ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-                docker exec ${CONT_IPFS} \
-                    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "POST", "PUT"]'
-                docker restart ${CONT_IPFS} > /dev/null
+                docker exec ${CONT_IPFS_NODE} \
+                    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]'
+                docker restart ${CONT_IPFS_NODE} > /dev/null
 
                 # Offchain itself
                 docker container start ${CONT_OFFCHAIN} > /dev/null

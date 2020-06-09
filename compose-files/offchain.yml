@@ -39,18 +39,45 @@ services:
       backend:
         ipv4_address: 172.15.0.5
 
-  ipfs:
-    image: ipfs/go-ipfs:$IPFS_VERSION
-    container_name: $CONT_IPFS
+  ## IPFS Cluster #################################
+  #################################################
+
+  ipfs-node:
+    image: ipfs/go-ipfs:$IPFS_NODE_VERSION
+    container_name: $CONT_IPFS_NODE
     restart: on-failure
     volumes:
-      - $VOLUME_LOCATION/ipfs/staging:/export
-      - $VOLUME_LOCATION/ipfs/data:/data/ipfs
+      - $VOLUME_LOCATION/ipfs/daemon/staging:/export
+      - $VOLUME_LOCATION/ipfs/daemon/data:/data/ipfs
     ports:
+      - "127.0.0.1:5001:5001"
       - "8080:8080"
     networks:
       backend:
         ipv4_address: 172.15.0.8
+
+  ipfs-cluster:
+    image: ipfs/ipfs-cluster:$IPFS_CLUSTER_VERSION
+    container_name: $CONT_IPFS_CLUSTER
+    depends_on:
+      - ipfs-node
+    environment:
+      CLUSTER_PEERNAME: "Subsocial Cluster"
+      CLUSTER_SECRET: ${CLUSTER_SECRET} # From shell variable if set
+      CLUSTER_IPFSHTTP_NODEMULTIADDRESS: /dns4/ipfs0/tcp/5001
+      CLUSTER_CRDT_TRUSTERPEERS: '*' # Trust all peers in Cluster (initially)
+      CLUSTER_RESTAPI_CORSALLOWEDORIGINS: '${OFFCHAIN_URL}'
+      CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS: /ip4/0.0.0.0/tcp/9096 # Expose API
+    ports:
+      - "127.0.0.1:9094:9094"
+    volumes:
+      - $VOLUME_LOCATION/ipfs/cluster:/data/ipfs-cluster
+    networks:
+      backend:
+        ipv4_address: 172.15.0.9
+
+#################################################
+#################################################
 
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
@@ -58,7 +85,7 @@ services:
     depends_on:
       - postgres
       - elasticsearch
-      - ipfs
+      - ipfs-cluster
     restart: on-failure
     environment:
       - NODE_ENV=production
