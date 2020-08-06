@@ -11,7 +11,7 @@ COMPOSE_DIR="${DIR}/compose-files"
 IP=${IP:-127.0.0.1}
 PROJECT_NAME="subsocial"
 FORCEPULL="false"
-export VOLUME_LOCATION=~/subsocial_data
+export EXTERNAL_VOLUME=~/subsocial_data
 PRUNING_MODE="none"
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
 export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
@@ -28,7 +28,7 @@ export APPS_VERSION=${APPS_VERSION:-latest}
 export PROXY_VERSION=${PROXY_VERSION:-latest}
 
 # URL variables
-export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://172.15.0.21:9944}
+export SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL:-ws://172.15.0.21:9944}
 export OFFCHAIN_URL=${OFFCHAIN_URL:-http://172.15.0.3:3001}
 export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
 export IPFS_URL=${IPFS_URL:-http://172.15.0.9:9094}
@@ -43,17 +43,22 @@ export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
 export CONT_IPFS_CLUSTER=${PROJECT_NAME}-ipfs-cluster
 export CONT_IPFS_NODE=${PROJECT_NAME}-ipfs-node
 export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
-export CONT_NODE_ALICE=${PROJECT_NAME}-node-alice
-export CONT_NODE_BOB=${PROJECT_NAME}-node-bob
+export CONT_NODE_RPC=${PROJECT_NAME}-node-rpc
+export CONT_NODE_VALIDATOR=${PROJECT_NAME}-node-validator
 export CONT_WEBUI=${PROJECT_NAME}-web-ui
 export CONT_APPS=${PROJECT_NAME}-apps
 export CONT_PROXY=${PROJECT_NAME}-proxy
 
 # Compose files list
+SUBSTRATE_RPC_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_rpc.yml"
+SUBSTRATE_VALIDATOR_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_validator.yml"
+
+SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
+
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/substrate_node.yml"
+COMPOSE_FILES+=${SELECTED_SUBSTRATE}
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
@@ -69,11 +74,11 @@ COLOR_RESET="\033[00m"
 
 parse_substrate_extra_opts(){
     while :; do
-        if ! [[ -z $2 ]] ; then
-            SUBSTRATE_NODE_EXTRA_OPTS+=$1' '
-            shift
-        else
+        if [ -z $1 ] ; then
             break;
+        else
+            SUBSTRATE_NODE_EXTRA_OPTS+=' '$1
+            shift
         fi
     done
 }
@@ -90,7 +95,7 @@ while :; do
 
             IP=$(curl -s ifconfig.me)
 
-            export SUBSTRATE_URL='ws://'$IP':9944'
+            export SUBSTRATE_RPC_URL='ws://'$IP':9944'
             export OFFCHAIN_URL='http://'$IP':3001'
             export ELASTIC_URL='http://'$IP':9200'
             WEBUI_IP=$IP':80'
@@ -139,7 +144,7 @@ while :; do
             ;;
 
         --no-substrate)
-            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/substrate_node.yml/}"
+            COMPOSE_FILES="${COMPOSE_FILES/${SELECTED_SUBSTRATE}/}"
             printf $COLOR_Y'Starting without Substrate Nodes...\n\n'$COLOR_RESET
             ;;
 
@@ -167,7 +172,7 @@ while :; do
         --only-substrate)
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/substrate_node.yml"
+            COMPOSE_FILES+=${SELECTED_SUBSTRATE}
             printf $COLOR_Y'Starting only Substrate...\n\n'$COLOR_RESET
             ;;
 
@@ -194,8 +199,8 @@ while :; do
                 printf $COLOR_R'WARN: --substrate-url must be provided with an ws(s)://IP:PORT argument\n'$COLOR_RESET "$1" >&2
                 break;
             else
-                export SUBSTRATE_URL=$2
-                printf $COLOR_Y'Substrate URL set to '$SUBSTRATE_URL'\n\n'$COLOR_RESET
+                export SUBSTRATE_RPC_URL=$2
+                printf $COLOR_Y'Substrate URL set to '$SUBSTRATE_RPC_URL'\n\n'$COLOR_RESET
                 shift
             fi
             ;;
@@ -248,17 +253,44 @@ while :; do
         # Extra options for substrate node
         #################################################
 
-        # WIP:
         --substrate-extra-opts)
-            if [ -z $2 ] ; then
-                printf $COLOR_R'WARN: --substrate-extra-opts must be provided with arguments\n'$COLOR_RESET "$1" >&2
+            if [[ -z $2 ]] ; then
+                printf $COLOR_R'WARN: --substrate-extra-opts must be provided with arguments string\n'$COLOR_RESET "$1" >&2
                 break;
+            # elif [[ $2 =~ ^\"*\" ]]; then
+            #     printf 'Usage example: '$COLOR_Y'--substrate-extra-opts "--name node --validator"\n'$COLOR_RESET >&2
+            #     break;
             else
                 parse_substrate_extra_opts $2
-                printf "$SUBSTRATE_NODE_EXTRA_OPTS"';'
+                shift
             fi
             ;;
-        #
+
+        --substrate-mode)
+            if [ -z $2 ] ; then
+                printf $COLOR_R'USAGE: --substrate-mode (all/rpc/validator)\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                COMPOSE_FILES="${COMPOSE_FILES/${SELECTED_SUBSTRATE}/}"
+                case $2 in
+                    all)
+                        SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
+                        ;;
+                    rpc)
+                        SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}
+                        ;;
+                    validator)
+                        SELECTED_SUBSTRATE=${SUBSTRATE_VALIDATOR_COMPOSE}
+                        ;;
+                    -?*)
+                        printf $COLOR_R'WARN: --substrate-mode provided with unknown option %s\n'$COLOR_RESET "$2" >&2
+                        break
+                        ;;
+                esac
+                shift
+                COMPOSE_FILES+=${SELECTED_SUBSTRATE}
+            fi
+            ;;
 
         #################################################
 
@@ -280,8 +312,8 @@ while :; do
                 if [[ ${PRUNING_MODE} == "all-volumes" ]]; then
                     eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down -v
 
-                    printf $COLOR_Y'Cleaning Substrate nodes data, root may be required.\n'$COLOR_RESET
-                    sudo rm -rf $VOLUME_LOCATION || true
+                    printf $COLOR_Y'Cleaning IPFS data, root may be required.\n'$COLOR_RESET
+                    sudo rm -rf $EXTERNAL_VOLUME || true
                 fi
 
                 printf "\nProject pruned successfully\n"

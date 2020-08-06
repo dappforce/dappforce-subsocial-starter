@@ -1,0 +1,25 @@
+version: "3"
+services:
+  node_rpc:
+    image: dappforce/subsocial-node:$NODE_VERSION
+    container_name: $CONT_NODE_RPC
+    user:
+      subsocial:subsocial
+    restart: on-failure
+    command: subsocial-node --chain=/subsocial/customSpecRaw.json
+      --name subsocial-rpc
+      --db-cache 1024
+      --rpc-cors "*"
+      --ws-port 9944
+      --port 30333
+      --unsafe-ws-external
+      --no-prometheus
+      $SUBSTRATE_NODE_EXTRA_OPTS
+    volumes:
+      - node_rpc_data:/data
+    ports:
+      - "9944:9944"
+      - "30333:30333"
+    networks:
+      backend:
+        ipv4_address: 172.15.0.21

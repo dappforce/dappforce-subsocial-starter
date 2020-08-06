@@ -11,3 +11,5 @@ networks:
 volumes:
   postgres_data:
   es_data:
+  node_rpc_data:
+  node_validator_data:

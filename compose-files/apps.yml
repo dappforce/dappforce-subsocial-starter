@@ -6,7 +6,7 @@ services:
     container_name: $CONT_APPS
     restart: on-failure
     environment:
-      - SUBSTRATE_URL=$SUBSTRATE_URL
+      - SUBSTRATE_RPC_URL=$SUBSTRATE_RPC_URL
     networks:
       backend:
         ipv4_address: 172.15.0.6

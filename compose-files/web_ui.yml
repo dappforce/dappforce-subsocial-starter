@@ -6,7 +6,7 @@ services:
     container_name: $CONT_WEBUI
     restart: on-failure
     environment:
-      - SUBSTRATE_URL=$SUBSTRATE_URL
+      - SUBSTRATE_RPC_URL=$SUBSTRATE_RPC_URL
       - OFFCHAIN_URL=$OFFCHAIN_URL
       - ELASTIC_URL=$ELASTIC_URL
       - APPS_URL=$APPS_URL
