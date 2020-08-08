@@ -3,6 +3,8 @@ services:
   node_validator:
     image: dappforce/subsocial-node:$NODE_VERSION
     container_name: $CONT_NODE_VALIDATOR
+    user:
+      subsocial:subsocial
     restart: on-failure
     command: subsocial-node
       --name subsocial-validator
