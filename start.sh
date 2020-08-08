@@ -193,6 +193,7 @@ while :; do
 
         --only-proxy)
             COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
             printf $COLOR_Y'Starting only Nginx proxy...\n\n'$COLOR_RESET
             ;;
