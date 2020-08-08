@@ -77,7 +77,6 @@ parse_substrate_extra_opts(){
         if [ -z $1 ] ; then
             break;
         else
-            echo "Adding new extra opt: ${1}"
             SUBSTRATE_NODE_EXTRA_OPTS+=' '$1
             shift
         fi
@@ -334,8 +333,6 @@ while :; do
             PULL_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
             [ ${FORCEPULL} = "true" ] && eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" pull
             eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
-
-            printf $COLOR_R'SUBSTRATE_NODE_EXTRA_OPTS: '$COLOR_RESET"${SUBSTRATE_NODE_EXTRA_OPTS}\n"
 
             if [[ $COMPOSE_FILES =~ 'offchain' ]] ; then
 
