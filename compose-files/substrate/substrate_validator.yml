@@ -4,8 +4,7 @@ services:
     image: dappforce/subsocial-node:$NODE_VERSION
     container_name: $CONT_NODE_VALIDATOR
     restart: on-failure
-    command: subsocial-node --chain=/subsocial/customSpecRaw.json
-      -d /data
+    command: subsocial-node
       --name subsocial-validator
       --db-cache 2048
       --validator

@@ -6,7 +6,7 @@ services:
     user:
       subsocial:subsocial
     restart: on-failure
-    command: subsocial-node --chain=/subsocial/customSpecRaw.json
+    command: subsocial-node
       --name subsocial-rpc
       --db-cache 1024
       --rpc-cors "*"
