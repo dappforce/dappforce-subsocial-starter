@@ -7,7 +7,6 @@ services:
       subsocial:subsocial
     restart: on-failure
     command: subsocial-node
-      --name subsocial-rpc
       --db-cache 1024
       --rpc-cors "*"
       --ws-port 9944

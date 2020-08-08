@@ -7,7 +7,6 @@ services:
       subsocial:subsocial
     restart: on-failure
     command: subsocial-node
-      --name subsocial-validator
       --db-cache 2048
       --validator
       --port 30334
