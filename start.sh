@@ -427,7 +427,8 @@ while :; do
                 fi
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
-                        API.HTTPHeaders.Access-Control-Allow-Origin '["'$IPFS_CLUSTER_IP'", "'$OFFCHAIN_URL'"]' &&
+                        API.HTTPHeaders.Access-Control-Allow-Origin \
+                        '["'$IPFS_CLUSTER_IP'", "'$OFFCHAIN_URL'"]' 2> /dev/null &&
                     # docker exec ${CONT_IPFS_NODE} ipfs config --json \
                     #     API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]' 2> /dev/null &&
                     docker restart ${CONT_IPFS_NODE} > /dev/null
