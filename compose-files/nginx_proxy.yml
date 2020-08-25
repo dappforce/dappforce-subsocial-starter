@@ -10,4 +10,4 @@ services:
       - "80:80"
     networks:
       backend:
-        ipv4_address: 172.15.0.7
+        ipv4_address: $NGINX_PROXY_IP

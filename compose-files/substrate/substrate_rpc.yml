@@ -21,4 +21,4 @@ services:
       - "30333:30333"
     networks:
       backend:
-        ipv4_address: 172.15.0.21
+        ipv4_address: $SUBSTRATE_RPC_IP

@@ -14,27 +14,32 @@ services:
       - "8080:8080"
     networks:
       backend:
-        ipv4_address: 172.15.0.8
+        ipv4_address: $IPFS_NODE_IP
 
   ipfs-cluster:
     image: ipfs/ipfs-cluster:$IPFS_CLUSTER_VERSION
     container_name: $CONT_IPFS_CLUSTER
+    restart: on-failure
     depends_on:
       - ipfs-node
+    # command: daemon
+      # --bootstrap $CLUSTER_BOOTSTRAP
     environment:
       CLUSTER_PEERNAME: "Subsocial Cluster"
       CLUSTER_SECRET: ${CLUSTER_SECRET} # From shell variable if set
       CLUSTER_IPFSHTTP_NODEMULTIADDRESS: /dns4/ipfs-node/tcp/5001
-      CLUSTER_CRDT_TRUSTERPEERS: '*' # Trust all peers in Cluster (initially)
+      CLUSTER_CRDT_TRUSTEDPEERS: '*' # Trust all peers in Cluster (initially)
       CLUSTER_RESTAPI_CORSALLOWEDORIGINS: '${OFFCHAIN_URL}'
       CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS: /ip4/0.0.0.0/tcp/9094 # Expose API
+      CLUSTER_MONITORPINGINTERVAL: 2s # Speed up peer discovery
     ports:
-      - "127.0.0.1:9094:9094"
+      - "9094:9094"
+      - "9096:9096"
     volumes:
-      - $EXTERNAL_VOLUME/ipfs/cluster:/data/ipfs-cluster
+      - $CLUSTER_CONFIG_FOLDER:/data/ipfs-cluster
     networks:
       backend:
-        ipv4_address: 172.15.0.9
+        ipv4_address: $IPFS_CLUSTER_IP
 
 #################################################
 #################################################

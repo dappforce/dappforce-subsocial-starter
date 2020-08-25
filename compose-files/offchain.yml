@@ -12,7 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       backend:
-        ipv4_address: 172.15.0.4
+        ipv4_address: $POSTGRES_IP
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTICSEARCH_VERSION
@@ -24,7 +24,7 @@ services:
       discovery.type: "single-node"
       cluster.name: "subsocial-cluster"
       node.name: "subsocial-node"
-      network.host: "172.15.0.5"
+      network.host: "$ELASTICSEARCH_IP"
       http.port: "9200"
       http.cors.enabled: "true"
       http.cors.allow-credentials: "true"
@@ -37,7 +37,7 @@ services:
       - "9200:9200"
     networks:
       backend:
-        ipv4_address: 172.15.0.5
+        ipv4_address: $ELASTICSEARCH_IP
 
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
@@ -50,7 +50,7 @@ services:
     environment:
       - NODE_ENV=production
       - SUBSTRATE_RPC_URL=$SUBSTRATE_RPC_URL
-      - PGHOST=172.15.0.4
+      - PGHOST=$POSTGRES_IP
       - ES_NODE_URL=$ELASTIC_URL
       - IPFS_NODE_URL=$IPFS_READONLY_URL
       - IPFS_CLUSTER_URL=$IPFS_URL
@@ -59,4 +59,4 @@ services:
       - "3011:3011"
     networks:
       backend:
-        ipv4_address: 172.15.0.3
+        ipv4_address: $OFFCHAIN_IP

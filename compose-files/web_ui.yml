@@ -14,4 +14,4 @@ services:
       - OFFCHAIN_WS=$OFFCHAIN_WS
     networks:
       backend:
-        ipv4_address: 172.15.0.2
+        ipv4_address: $WEBUI_DOCKER_IP

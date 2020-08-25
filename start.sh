@@ -8,34 +8,53 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 COMPOSE_DIR="${DIR}/compose-files"
 
 # Default props
-IP=${IP:-127.0.0.1}
+export IP=127.0.0.1
+WEBUI_IP=127.0.0.1:80
+
 PROJECT_NAME="subsocial"
 FORCEPULL="false"
 export EXTERNAL_VOLUME=~/subsocial_data
 PRUNING_MODE="none"
+
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
 export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
 
+# Other IPFS Cluster variables
+export CLUSTER_BOOTSTRAP=""
+export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
+
 # Version variables
-export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
-export ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-7.4.1}
-export IPFS_CLUSTER_VERSION=${IPFS_CLUSTER_VERSION:-latest}
-export IPFS_NODE_VERSION=${IPFS_NODE_VERSION:-v0.5.1}
-export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
-export NODE_VERSION=${NODE_VERSION:-latest}
-export WEBUI_VERSION=${WEBUI_VERSION:-latest}
-export APPS_VERSION=${APPS_VERSION:-latest}
-export PROXY_VERSION=${PROXY_VERSION:-latest}
+export POSTGRES_VERSION=latest
+export ELASTICSEARCH_VERSION=7.4.1
+export IPFS_CLUSTER_VERSION=latest
+export IPFS_NODE_VERSION=v0.5.1
+export OFFCHAIN_VERSION=latest
+export NODE_VERSION=latest
+export WEBUI_VERSION=latest
+export APPS_VERSION=latest
+export PROXY_VERSION=latest
+
+# Internal Docker IP variables
+# [!] Update files in nginx folder if changed
+export WEBUI_DOCKER_IP=172.15.0.2
+export OFFCHAIN_IP=172.15.0.3
+export POSTGRES_IP=172.15.0.4
+export ELASTICSEARCH_IP=172.15.0.5
+export JS_APPS_IP=172.15.0.6
+export NGINX_PROXY_IP=172.15.0.7
+export IPFS_NODE_IP=172.15.0.8
+export IPFS_CLUSTER_IP=172.15.0.9
+export SUBSTRATE_RPC_IP=172.15.0.21
+export SUBSTRATE_VALIDATOR_IP=172.15.0.22
 
 # URL variables
-export SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL:-ws://172.15.0.21:9944}
-export OFFCHAIN_URL=${OFFCHAIN_URL:-http://172.15.0.3:3001}
-export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
-export IPFS_URL=${IPFS_URL:-http://172.15.0.9:9094}
-export IPFS_READONLY_URL=${IPFS_READONLY_URL:-http://172.15.0.8:8080}
-WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
-export APPS_URL=${APPS_URL:-http://127.0.0.1/bc}
-export OFFCHAIN_WS=${OFFCHAIN_WS:-ws://127.0.0.1:3011}
+export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
+export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
+export ELASTIC_URL=http://$ELASTICSEARCH_IP:9200
+export IPFS_URL=http://$IPFS_CLUSTER_IP:9094
+export IPFS_READONLY_URL=http://$IPFS_NODE_IP:8080
+export APPS_URL=http://127.0.0.1/bc
+export OFFCHAIN_WS=ws://127.0.0.1:3011
 
 # Container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
@@ -84,6 +103,18 @@ parse_substrate_extra_opts(){
     done
 }
 
+write_boostrap_peers(){
+    printf "\nIPFS Cluster peers:\n"
+    while :; do
+        if [ -z $1 ] ; then
+            break;
+        else
+            printf $1'\n'
+            shift
+        fi
+    done
+}
+
 while :; do
     case $1 in
 
@@ -96,13 +127,13 @@ while :; do
 
             IP=$(curl -s ifconfig.me)
 
-            export SUBSTRATE_RPC_URL='ws://'$IP':9944'
-            export OFFCHAIN_URL='http://'$IP':3001'
-            export ELASTIC_URL='http://'$IP':9200'
+            SUBSTRATE_RPC_URL='ws://'$IP':9944'
+            OFFCHAIN_URL='http://'$IP':3001'
+            ELASTIC_URL='http://'$IP':9200'
             WEBUI_IP=$IP':80'
-            export APPS_URL='http://'$IP'/bc'
-            export IPFS_READONLY_URL='http://'$IP':8080'
-            export OFFCHAIN_WS='ws://'$IP':3011'
+            APPS_URL='http://'$IP'/bc'
+            IPFS_READONLY_URL='http://'$IP':8080'
+            OFFCHAIN_WS='ws://'$IP':3011'
 
             printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
             ;;
@@ -311,20 +342,30 @@ while :; do
         # Extra options for IPFS cluster
         #################################################
 
-        --ipfs-peers)
+        --cluster-peers)
             docker exec subsocial-ipfs-cluster ipfs-cluster-ctl peers ls
             break;
             ;;
 
-        --ipfs-set-peers)
+        --cluster-bootstrap)
             if [[ -z $2 ]] ; then
-                printf $COLOR_R'WARN: --ipfs-set-peers must be provided with arguments string\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --cluster-bootstrap must be provided with arguments string\n'$COLOR_RESET "$1" >&2
                 break;
             else
-                printf $COLOR_Y'WARN: --ipfs-set-peers is WIP\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_Y'WARN: --cluster-bootstrap is WIP\n'$COLOR_RESET "$1" >&2
+                CLUSTER_BOOTSTRAP=$2
+                shift
+            fi
+            ;;
+
+        --cluster-config-path)
+            if [[ -z $2 ]]; then
+                printf $COLOR_R'WARN: --cluster-config-path must be provided with path string\n'$COLOR_RESET "$1" >&2
                 break;
-                # parse_ipfs_bootnodes $2
-                # shift
+            else
+                mkdir -p $CLUSTER_CONFIG_FOLDER
+                cp $2 $CLUSTER_CONFIG_FOLDER
+                shift
             fi
             ;;
 
@@ -378,12 +419,17 @@ while :; do
             fi
 
             if [[ $COMPOSE_FILES =~ 'ipfs' ]] ; then
-                printf "Setting up IPFS...\n"
+                printf "Setting up IPFS\n"
+                if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
+                    # write_boostrap_peers $CLUSTER_BOOTSTRAP
+                    echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
+                    docker restart ${CONT_IPFS_CLUSTER} > /dev/null
+                fi
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
-                        API.HTTPHeaders.Access-Control-Allow-Origin '["*"]' 2> /dev/null &&
-                    docker exec ${CONT_IPFS_NODE} ipfs config --json \
-                        API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]' 2> /dev/null &&
+                        API.HTTPHeaders.Access-Control-Allow-Origin '["'$IPFS_CLUSTER_IP'", "'$OFFCHAIN_URL'"]' &&
+                    # docker exec ${CONT_IPFS_NODE} ipfs config --json \
+                    #     API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]' 2> /dev/null &&
                     docker restart ${CONT_IPFS_NODE} > /dev/null
                 ); do
                     sleep 2

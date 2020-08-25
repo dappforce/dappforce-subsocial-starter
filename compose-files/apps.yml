@@ -9,4 +9,4 @@ services:
       - SUBSTRATE_RPC_URL=$SUBSTRATE_RPC_URL
     networks:
       backend:
-        ipv4_address: 172.15.0.6
+        ipv4_address: $JS_APPS_IP
