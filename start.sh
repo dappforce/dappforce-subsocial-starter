@@ -58,6 +58,7 @@ SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
+COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
 COMPOSE_FILES+=${SELECTED_SUBSTRATE}
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
@@ -197,6 +198,13 @@ while :; do
             printf $COLOR_Y'Starting only Nginx proxy...\n\n'$COLOR_RESET
             ;;
 
+        --only-ipfs)
+            COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
+            printf $COLOR_Y'Starting only IPFS cluster...\n\n'$COLOR_RESET
+            ;;
+
         #################################################
         # Specify component's URLs (ref. 'URL variables')
         #################################################
@@ -300,6 +308,27 @@ while :; do
             ;;
 
         #################################################
+        # Extra options for IPFS cluster
+        #################################################
+
+        --ipfs-peers)
+            docker exec subsocial-ipfs-cluster ipfs-cluster-ctl peers ls
+            break;
+            ;;
+
+        --ipfs-set-peers)
+            if [[ -z $2 ]] ; then
+                printf $COLOR_R'WARN: --ipfs-set-peers must be provided with arguments string\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                printf $COLOR_Y'WARN: --ipfs-set-peers is WIP\n'$COLOR_RESET "$1" >&2
+                break;
+                # parse_ipfs_bootnodes $2
+                # shift
+            fi
+            ;;
+
+        #################################################
 
         --) # End of all options.
             shift
@@ -343,17 +372,22 @@ while :; do
                     sleep 2
                 done
 
-                # IPFS
-                printf "Setting up IPFS...\n"
-                docker exec ${CONT_IPFS_NODE} \
-                    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-                docker exec ${CONT_IPFS_NODE} \
-                    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]'
-                docker restart ${CONT_IPFS_NODE} > /dev/null
-
                 # Offchain itself
                 docker container start ${CONT_OFFCHAIN} > /dev/null
                 printf 'Offchain successfully started\n'
+            fi
+
+            if [[ $COMPOSE_FILES =~ 'ipfs' ]] ; then
+                printf "Setting up IPFS...\n"
+                until (
+                    docker exec ${CONT_IPFS_NODE} ipfs config --json \
+                        API.HTTPHeaders.Access-Control-Allow-Origin '["*"]' 2> /dev/null &&
+                    docker exec ${CONT_IPFS_NODE} ipfs config --json \
+                        API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]' 2> /dev/null &&
+                    docker restart ${CONT_IPFS_NODE} > /dev/null
+                ); do
+                    sleep 2
+                done
             fi
 
             if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
