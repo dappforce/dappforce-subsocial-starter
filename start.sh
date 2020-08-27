@@ -190,6 +190,11 @@ while :; do
             printf $COLOR_Y'Starting without JS Apps...\n\n'$COLOR_RESET
             ;;
 
+        --no-ipfs)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/ipfs.yml/}"
+            printf $COLOR_Y'Starting without IPFS Cluster...\n\n'$COLOR_RESET
+            ;;
+
         #################################################
         # Include-only switches
         #################################################
@@ -198,6 +203,7 @@ while :; do
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
             printf $COLOR_Y'Starting only Offchain...\n\n'$COLOR_RESET
             ;;
 
@@ -352,20 +358,18 @@ while :; do
                 printf $COLOR_R'WARN: --cluster-bootstrap must be provided with arguments string\n'$COLOR_RESET "$1" >&2
                 break;
             else
-                printf $COLOR_Y'WARN: --cluster-bootstrap is WIP\n'$COLOR_RESET "$1" >&2
                 CLUSTER_BOOTSTRAP=$2
                 shift
             fi
             ;;
 
-        --cluster-config-path)
+        --cluster-identity-path)
             if [[ -z $2 ]]; then
-                printf $COLOR_R'WARN: --cluster-config-path must be provided with path string\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --cluster-identity-path must be provided with path string\n'$COLOR_RESET "$1" >&2
                 break;
             else
                 mkdir -p $CLUSTER_CONFIG_FOLDER
                 cp $2 $CLUSTER_CONFIG_FOLDER
-                shift
             fi
             ;;
 
@@ -420,11 +424,6 @@ while :; do
 
             if [[ $COMPOSE_FILES =~ 'ipfs' ]] ; then
                 printf "Setting up IPFS\n"
-                if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
-                    # write_boostrap_peers $CLUSTER_BOOTSTRAP
-                    echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
-                    docker restart ${CONT_IPFS_CLUSTER} > /dev/null
-                fi
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
                         API.HTTPHeaders.Access-Control-Allow-Origin \
@@ -435,6 +434,14 @@ while :; do
                 ); do
                     sleep 2
                 done
+                if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
+                    write_boostrap_peers $CLUSTER_BOOTSTRAP
+                    echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
+                    # eval cat $CLUSTER_CONFIG_FOLDER/peerstore
+                    # docker commit --change \
+                        # "CMD \"daemon --bootstrap "$CLUSTER_BOOTSTRAP"\"]" $CONT_IPFS_CLUSTER
+                    docker restart ${CONT_IPFS_CLUSTER} > /dev/null
+                fi
             fi
 
             if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
