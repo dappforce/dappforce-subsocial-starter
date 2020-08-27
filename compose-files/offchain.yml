@@ -49,7 +49,7 @@ services:
     restart: on-failure
     environment:
       - NODE_ENV=production
-      - SUBSTRATE_RPC_URL=$SUBSTRATE_RPC_URL
+      - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
       - PGHOST=$POSTGRES_IP
       - ES_NODE_URL=$ELASTIC_URL
       - IPFS_NODE_URL=$IPFS_READONLY_URL
