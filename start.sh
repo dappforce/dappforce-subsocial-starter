@@ -190,6 +190,11 @@ while :; do
             printf $COLOR_Y'Starting without JS Apps...\n\n'$COLOR_RESET
             ;;
 
+        --no-proxy)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
+            printf $COLOR_Y'Starting without NGINX Proxy...\n\n'$COLOR_RESET
+            ;;
+
         --no-ipfs)
             COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/ipfs.yml/}"
             printf $COLOR_Y'Starting without IPFS Cluster...\n\n'$COLOR_RESET
