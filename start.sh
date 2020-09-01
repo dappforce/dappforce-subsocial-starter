@@ -84,6 +84,7 @@ COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
 
 export SUBSTRATE_NODE_EXTRA_OPTS=""
+export OFFCHAIN_CORS="http://localhost"
 
 # colors
 COLOR_R="\033[0;31m"    # red
@@ -375,6 +376,23 @@ while :; do
             else
                 mkdir -p $CLUSTER_CONFIG_FOLDER
                 cp $2 $CLUSTER_CONFIG_FOLDER
+                shift
+            fi
+            ;;
+
+        #################################################
+        # Extra options for offchain
+        #################################################
+
+        # TODO: finish this argument
+        --offchain-cors)
+            if [[ -z $2 ]]; then
+                printf $COLOR_R'WARN: --offchain-cors must be provided with URL(s) string\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                OFFCHAIN_CORS=$2
+                printf $COLOR_Y'Offchain CORS set to '$2'\n\n'$COLOR_RESET
+                shift
             fi
             ;;
 
