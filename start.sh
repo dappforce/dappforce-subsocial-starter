@@ -253,7 +253,7 @@ while :; do
         #################################################
 
         --substrate-url)
-            if [ -z $2 ] || [[ $2 =~ --.* ]] || ! [[ $2 =~ wss?://.*:.* ]] ; then
+            if [ -z $2 ] || [[ $2 =~ --.* ]] || ! [[ $2 =~ wss?://.*:?.* ]] ; then
                 printf $COLOR_R'WARN: --substrate-url must be provided with an ws(s)://IP:PORT argument\n'$COLOR_RESET "$1" >&2
                 break;
             else
