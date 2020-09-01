@@ -54,6 +54,7 @@ services:
       - ES_NODE_URL=$ELASTIC_URL
       - IPFS_NODE_URL=$IPFS_READONLY_URL
       - IPFS_CLUSTER_URL=$IPFS_URL
+      - CORS_ALLOWED_ORIGIN=$OFFCHAIN_CORS
     ports:
       - "3001:3001"
       - "3011:3011"
