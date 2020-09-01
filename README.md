@@ -69,25 +69,34 @@ Then logout and log back in and all the Docker commands you find online should w
 
 The [start.sh](start.sh) script comes with a set of options for customizing project startup.
 
-| Argument                 | Description                                                                                          |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `--global`               | Binds the project parts to global IP visible on ifconfig.me
-| `--force-pull`           | Pull Docker images tagged _latest_ if only `--tag` isn't specified
-| `--tag`                  | Specify Docker images tag
-| `--prune (all-volumes)`  | Remove the Docker containers. If `all-volumes` is specified, remove volumes as well
-| `--no-offchain`          | Start Subsocial stack without offchain storage and Elasticsearch
-| `--no-substrate`         | Start Subsocial stack without Substrate node
-| `--no-webui`             | Start Subsocial stack without Web UI
-| `--no-apps`              | Start Subsocial stack without JS Apps
-| `--only-offchain`        | Start (or update) only offchain container
-| `--only-substrate`       | Start (or update) only Substrate node's container
-| `--only-webui`           | Start (or update) only Web UI container
-| `--only-apps`            | Start (or update) only JS Apps container
-| `--substrate-url`        | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944`
-| `--offchain-url`         | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001`
-| `--elastic-url`          | Specify Elasticsearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200`
-| `--webui-ip`             | Specify Web UI ip address. Example: `./start.sh --global --substrate-url http://172.15.0.2`
-| `--apps-url`             | Specify JS Apps URL. Example: `./start.sh --global --apps-url http://172.15.0.6:3002`
+| Argument                          | Description                                                                                          |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `--global`                        | Binds the project parts to global IP visible on ifconfig.me
+| `--force-pull`                    | Pull Docker images tagged _latest_ if only `--tag` isn't specified
+| `--tag`                           | Specify Docker images tag
+| `--prune (all-volumes)`           | Remove the Docker containers. If `all-volumes` is specified, remove volumes as well
+| `--no-offchain`                   | Start Subsocial stack without offchain storage and Elasticsearch
+| `--no-substrate`                  | Start Subsocial stack without Substrate node
+| `--no-webui`                      | Start Subsocial stack without Web UI
+| `--no-apps`                       | Start Subsocial stack without JS Apps
+| `--no-proxy`                      | Start Subsocial stack without NGINX proxy
+| `--no-ipfs`                       | Start Subsocial stack without IPFS Cluster
+| `--only-offchain`                 | Start (or update) only offchain container
+| `--only-substrate`                | Start (or update) only Substrate node's container
+| `--only-webui`                    | Start (or update) only Web UI container
+| `--only-apps`                     | Start (or update) only JS Apps container
+| `--only-proxy`                    | Start (or update) only NGINX proxy container
+| `--only-ipfs`                     | Start (or update) only IPFS Cluster container
+| `--substrate-url`                 | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944`
+| `--offchain-url`                  | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001`
+| `--elastic-url`                   | Specify Elasticsearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200`
+| `--webui-ip`                      | Specify Web UI ip address. Example: `./start.sh --global --substrate-url http://172.15.0.2`
+| `--apps-url`                      | Specify JS Apps URL. Example: `./start.sh --global --apps-url http://172.15.0.6:3002`
+| `--substrate-extra-opts`          | Start Substrate node with additional Substrate CLI arguments. Example: `./start.sh --substrate-extra-opts "--dev --name my-subsocial-node"`
+| `--substrate-mode <rpc/validator>`| Start Substrate in a specified mode (`rpc` or `validator`). By default (when isn't specified) starts both nodes RPC and Authority (validator).
+| `--cluster-peers`                 | Shows IPFS Cluster peers if it's running.
+| `--cluster-bootstrap "list"`      | Specify initial IPFS Cluster peers as if it's done via `ipfs-cluster-service` CLI. Example: `./start.sh --cluster-bootstrap "/ip4/FIRST_IP/tcp/9066/FIRST_IDENTITY_ID, /ip4/SECOND_IP/tcp/9066/SECOND_IDENTITY_ID"`
+| `--cluster-identity-path "path"`  | Specify IPFS Cluster `identity.json` to copy to initial cluster config. 
 
 ### Proxy
 
@@ -127,24 +136,35 @@ By default it will start three containers: PostgreSQL, ElasticSearch and offchai
 
 This one can be managed with `--no-offchain` and `--only-offchain` flags.
 
-| Container name            | External Port   | Local URL                | Description         |
+| Container name            | External Ports  | Local URL                | Description         |
 | ------------------------- | --------------- | ------------------------ | ------------------- |
-| `subsocial-offchain`      | `3001`          | http://localhost:3001/v1 | [Subsocial Offchain](https://github.com/dappforce/dappforce-subsocial-offchain)
+| `subsocial-offchain`      | `3001`, `3011`  | http://localhost:3001/v1 | [Subsocial Offchain](https://github.com/dappforce/dappforce-subsocial-offchain)
 | `subsocial-elasticsearch` | `9200`          | http://localhost:9200    | [Elasticsearch](https://www.elastic.co/what-is/elasticsearch)
 | `subsocial-postgres`      |                 |                          | [PostgreSQL](https://www.postgresql.org/about/)
-| `subsocial-ipfs`          | `8080`          |                          | [IPFS](https://github.com/ipfs/go-ipfs/blob/master/README.md)
+
+### IPFS Cluster
+
+By default it will start two containers: IPFS Cluster and IPFS Node (Gateway).
+
+This can be managed with `--no-ipfs`, `--only-ipfs` and `--cluster-peers` flags.\
+**!!EXPERIMENTAL!!:** you can specify `identity.json` and initial peers (bootnodes) with `--cluster-identity-path` and `--cluster-bootstrap` to be able to connect as a cluster peer. 
+
+| Container name            | External Ports  | Local URL                | Description         |
+| ------------------------- | --------------- | ------------------------ | ------------------- |
+| `subsocial-ipfs-node`     | `8080`          | http://localhost:8080    | [IPFS Node](https://github.com/ipfs/go-ipfs/blob/master/README.md)
+| `subsocial-ipfs-cluster`  | `9094`, `9096`  | http://localhost:9094    | [IPFS Cluster](https://github.com/ipfs/ipfs-cluster/blob/master/README.md)
 
 ### Substrate Node
 
 By  default it will start two local validator nodes in Docker containers: Alice and Bob. Offchain and others connect to Alice's node, because it's external.
 
-Additional options can be added using `--substrate-extra-opts` (beta).
-This one can be managed with `--no-substrate` and `--only-substrate` flags.
+Additional options can be added using `--substrate-extra-opts`.
+This one can be managed with `--no-substrate`, `--only-substrate` and `--substrate-mode` flags.
 
-| Container name          | External Port   | Local URL             | Description                  |
-| ----------------------- | --------------- | --------------------- | ---------------------------- |
-| `subsocial-node-alice`  | `9944`          | ws://localhost:9944   | Archive Node
-| `subsocial-node-bob`    |                 |                       | Authority Node
+| Container name            | External Port   | Local URL             | Description                  |
+| ------------------------- | --------------- | --------------------- | ---------------------------- |
+| `subsocial-node-rpc`      | `9944`          | ws://localhost:9944   | RPC sync node
+| `subsocial-node-validator`| `30334`         |                       | Archive authority node
 
 
 ## License

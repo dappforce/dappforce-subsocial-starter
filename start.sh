@@ -8,34 +8,53 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 COMPOSE_DIR="${DIR}/compose-files"
 
 # Default props
-IP=${IP:-127.0.0.1}
+export IP=127.0.0.1
+WEBUI_IP=127.0.0.1:80
+
 PROJECT_NAME="subsocial"
 FORCEPULL="false"
-export VOLUME_LOCATION=~/subsocial_data
+export EXTERNAL_VOLUME=~/subsocial_data
 PRUNING_MODE="none"
+
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
 export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
 
+# Other IPFS Cluster variables
+export CLUSTER_BOOTSTRAP=""
+export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
+
 # Version variables
-export POSTGRES_VERSION=${POSTGRES_VERSION:-latest}
-export ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-7.4.1}
-export IPFS_CLUSTER_VERSION=${IPFS_CLUSTER_VERSION:-latest}
-export IPFS_NODE_VERSION=${IPFS_NODE_VERSION:-v0.5.1}
-export OFFCHAIN_VERSION=${OFFCHAIN_VERSION:-latest}
-export NODE_VERSION=${NODE_VERSION:-latest}
-export WEBUI_VERSION=${WEBUI_VERSION:-latest}
-export APPS_VERSION=${APPS_VERSION:-latest}
-export PROXY_VERSION=${PROXY_VERSION:-latest}
+export POSTGRES_VERSION=latest
+export ELASTICSEARCH_VERSION=7.4.1
+export IPFS_CLUSTER_VERSION=latest
+export IPFS_NODE_VERSION=v0.5.1
+export OFFCHAIN_VERSION=latest
+export NODE_VERSION=latest
+export WEBUI_VERSION=latest
+export APPS_VERSION=latest
+export PROXY_VERSION=latest
+
+# Internal Docker IP variables
+# [!] Update files in nginx folder if changed
+export WEBUI_DOCKER_IP=172.15.0.2
+export OFFCHAIN_IP=172.15.0.3
+export POSTGRES_IP=172.15.0.4
+export ELASTICSEARCH_IP=172.15.0.5
+export JS_APPS_IP=172.15.0.6
+export NGINX_PROXY_IP=172.15.0.7
+export IPFS_NODE_IP=172.15.0.8
+export IPFS_CLUSTER_IP=172.15.0.9
+export SUBSTRATE_RPC_IP=172.15.0.21
+export SUBSTRATE_VALIDATOR_IP=172.15.0.22
 
 # URL variables
-export SUBSTRATE_URL=${SUBSTRATE_URL:-ws://172.15.0.21:9944}
-export OFFCHAIN_URL=${OFFCHAIN_URL:-http://172.15.0.3:3001}
-export ELASTIC_URL=${ELASTIC_URL:-http://172.15.0.5:9200}
-export IPFS_URL=${IPFS_URL:-http://172.15.0.9:9094}
-export IPFS_READONLY_URL=${IPFS_READONLY_URL:-http://172.15.0.8:8080}
-WEBUI_IP=${WEBUI_IP:-127.0.0.1:80}
-export APPS_URL=${APPS_URL:-http://127.0.0.1/bc}
-export OFFCHAIN_WS=${OFFCHAIN_WS:-ws://127.0.0.1:3011}
+export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
+export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
+export ELASTIC_URL=http://$ELASTICSEARCH_IP:9200
+export IPFS_URL=http://$IPFS_CLUSTER_IP:9094
+export IPFS_READONLY_URL=http://$IPFS_NODE_IP:8080
+export APPS_URL=http://127.0.0.1/bc
+export OFFCHAIN_WS=ws://127.0.0.1:3011
 
 # Container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
@@ -43,22 +62,28 @@ export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
 export CONT_IPFS_CLUSTER=${PROJECT_NAME}-ipfs-cluster
 export CONT_IPFS_NODE=${PROJECT_NAME}-ipfs-node
 export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
-export CONT_NODE_ALICE=${PROJECT_NAME}-node-alice
-export CONT_NODE_BOB=${PROJECT_NAME}-node-bob
+export CONT_NODE_RPC=${PROJECT_NAME}-node-rpc
+export CONT_NODE_VALIDATOR=${PROJECT_NAME}-node-validator
 export CONT_WEBUI=${PROJECT_NAME}-web-ui
 export CONT_APPS=${PROJECT_NAME}-apps
 export CONT_PROXY=${PROJECT_NAME}-proxy
 
 # Compose files list
+SUBSTRATE_RPC_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_rpc.yml"
+SUBSTRATE_VALIDATOR_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_validator.yml"
+
+SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
+
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/substrate_node.yml"
+COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
+COMPOSE_FILES+=${SELECTED_SUBSTRATE}
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
 
-SUBSTRATE_NODE_EXTRA_OPTS="${SUBSTRATE_NODE_EXTRA_OPTS:-}"
+export SUBSTRATE_NODE_EXTRA_OPTS=""
 
 # colors
 COLOR_R="\033[0;31m"    # red
@@ -69,11 +94,23 @@ COLOR_RESET="\033[00m"
 
 parse_substrate_extra_opts(){
     while :; do
-        if ! [[ -z $2 ]] ; then
-            SUBSTRATE_NODE_EXTRA_OPTS+=$1' '
-            shift
-        else
+        if [ -z $1 ] ; then
             break;
+        else
+            SUBSTRATE_NODE_EXTRA_OPTS+=' '$1
+            shift
+        fi
+    done
+}
+
+write_boostrap_peers(){
+    printf "\nIPFS Cluster peers:\n"
+    while :; do
+        if [ -z $1 ] ; then
+            break;
+        else
+            printf $1'\n'
+            shift
         fi
     done
 }
@@ -90,13 +127,13 @@ while :; do
 
             IP=$(curl -s ifconfig.me)
 
-            export SUBSTRATE_URL='ws://'$IP':9944'
-            export OFFCHAIN_URL='http://'$IP':3001'
-            export ELASTIC_URL='http://'$IP':9200'
+            SUBSTRATE_RPC_URL='ws://'$IP':9944'
+            OFFCHAIN_URL='http://'$IP':3001'
+            ELASTIC_URL='http://'$IP':9200'
             WEBUI_IP=$IP':80'
-            export APPS_URL='http://'$IP'/bc'
-            export IPFS_READONLY_URL='http://'$IP':8080'
-            export OFFCHAIN_WS='ws://'$IP':3011'
+            APPS_URL='http://'$IP'/bc'
+            IPFS_READONLY_URL='http://'$IP':8080'
+            OFFCHAIN_WS='ws://'$IP':3011'
 
             printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
             ;;
@@ -139,7 +176,7 @@ while :; do
             ;;
 
         --no-substrate)
-            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/substrate_node.yml/}"
+            COMPOSE_FILES="${COMPOSE_FILES/${SELECTED_SUBSTRATE}/}"
             printf $COLOR_Y'Starting without Substrate Nodes...\n\n'$COLOR_RESET
             ;;
 
@@ -153,6 +190,16 @@ while :; do
             printf $COLOR_Y'Starting without JS Apps...\n\n'$COLOR_RESET
             ;;
 
+        --no-proxy)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
+            printf $COLOR_Y'Starting without NGINX Proxy...\n\n'$COLOR_RESET
+            ;;
+
+        --no-ipfs)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/ipfs.yml/}"
+            printf $COLOR_Y'Starting without IPFS Cluster...\n\n'$COLOR_RESET
+            ;;
+
         #################################################
         # Include-only switches
         #################################################
@@ -161,13 +208,14 @@ while :; do
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
             printf $COLOR_Y'Starting only Offchain...\n\n'$COLOR_RESET
             ;;
 
         --only-substrate)
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/substrate_node.yml"
+            COMPOSE_FILES+=${SELECTED_SUBSTRATE}
             printf $COLOR_Y'Starting only Substrate...\n\n'$COLOR_RESET
             ;;
 
@@ -185,6 +233,20 @@ while :; do
             printf $COLOR_Y'Starting only JS Apps...\n\n'$COLOR_RESET
             ;;
 
+        --only-proxy)
+            COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
+            printf $COLOR_Y'Starting only Nginx proxy...\n\n'$COLOR_RESET
+            ;;
+
+        --only-ipfs)
+            COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
+            printf $COLOR_Y'Starting only IPFS cluster...\n\n'$COLOR_RESET
+            ;;
+
         #################################################
         # Specify component's URLs (ref. 'URL variables')
         #################################################
@@ -194,8 +256,8 @@ while :; do
                 printf $COLOR_R'WARN: --substrate-url must be provided with an ws(s)://IP:PORT argument\n'$COLOR_RESET "$1" >&2
                 break;
             else
-                export SUBSTRATE_URL=$2
-                printf $COLOR_Y'Substrate URL set to '$SUBSTRATE_URL'\n\n'$COLOR_RESET
+                export SUBSTRATE_RPC_URL=$2
+                printf $COLOR_Y'Substrate URL set to '$SUBSTRATE_RPC_URL'\n\n'$COLOR_RESET
                 shift
             fi
             ;;
@@ -248,17 +310,73 @@ while :; do
         # Extra options for substrate node
         #################################################
 
-        # WIP:
         --substrate-extra-opts)
-            if [ -z $2 ] ; then
-                printf $COLOR_R'WARN: --substrate-extra-opts must be provided with arguments\n'$COLOR_RESET "$1" >&2
+            if [[ -z $2 ]] ; then
+                printf $COLOR_R'WARN: --substrate-extra-opts must be provided with arguments string\n'$COLOR_RESET "$1" >&2
                 break;
+            # elif [[ $2 =~ ^\"*\" ]]; then
+            #     printf 'Usage example: '$COLOR_Y'--substrate-extra-opts "--name node --validator"\n'$COLOR_RESET >&2
+            #     break;
             else
                 parse_substrate_extra_opts $2
-                printf "$SUBSTRATE_NODE_EXTRA_OPTS"';'
+                shift
             fi
             ;;
-        #
+
+        --substrate-mode)
+            if [ -z $2 ] ; then
+                printf $COLOR_R'USAGE: --substrate-mode (all/rpc/validator)\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                COMPOSE_FILES="${COMPOSE_FILES/${SELECTED_SUBSTRATE}/}"
+                case $2 in
+                    all)
+                        SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
+                        ;;
+                    rpc)
+                        SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}
+                        ;;
+                    validator)
+                        SELECTED_SUBSTRATE=${SUBSTRATE_VALIDATOR_COMPOSE}
+                        ;;
+                    -?*)
+                        printf $COLOR_R'WARN: --substrate-mode provided with unknown option %s\n'$COLOR_RESET "$2" >&2
+                        break
+                        ;;
+                esac
+                shift
+                COMPOSE_FILES+=${SELECTED_SUBSTRATE}
+            fi
+            ;;
+
+        #################################################
+        # Extra options for IPFS cluster
+        #################################################
+
+        --cluster-peers)
+            docker exec subsocial-ipfs-cluster ipfs-cluster-ctl peers ls
+            break;
+            ;;
+
+        --cluster-bootstrap)
+            if [[ -z $2 ]] ; then
+                printf $COLOR_R'WARN: --cluster-bootstrap must be provided with arguments string\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                CLUSTER_BOOTSTRAP=$2
+                shift
+            fi
+            ;;
+
+        --cluster-identity-path)
+            if [[ -z $2 ]]; then
+                printf $COLOR_R'WARN: --cluster-identity-path must be provided with path string\n'$COLOR_RESET "$1" >&2
+                break;
+            else
+                mkdir -p $CLUSTER_CONFIG_FOLDER
+                cp $2 $CLUSTER_CONFIG_FOLDER
+            fi
+            ;;
 
         #################################################
 
@@ -280,8 +398,8 @@ while :; do
                 if [[ ${PRUNING_MODE} == "all-volumes" ]]; then
                     eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down -v
 
-                    printf $COLOR_Y'Cleaning Substrate nodes data, root may be required.\n'$COLOR_RESET
-                    sudo rm -rf $VOLUME_LOCATION || true
+                    printf $COLOR_Y'Cleaning IPFS data, root may be required.\n'$COLOR_RESET
+                    sudo rm -rf $EXTERNAL_VOLUME || true
                 fi
 
                 printf "\nProject pruned successfully\n"
@@ -304,17 +422,31 @@ while :; do
                     sleep 2
                 done
 
-                # IPFS
-                printf "Setting up IPFS...\n"
-                docker exec ${CONT_IPFS_NODE} \
-                    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-                docker exec ${CONT_IPFS_NODE} \
-                    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]'
-                docker restart ${CONT_IPFS_NODE} > /dev/null
-
                 # Offchain itself
                 docker container start ${CONT_OFFCHAIN} > /dev/null
                 printf 'Offchain successfully started\n'
+            fi
+
+            if [[ $COMPOSE_FILES =~ 'ipfs' ]] ; then
+                printf "Setting up IPFS\n"
+                until (
+                    docker exec ${CONT_IPFS_NODE} ipfs config --json \
+                        API.HTTPHeaders.Access-Control-Allow-Origin \
+                        '["'$IPFS_CLUSTER_IP'", "'$OFFCHAIN_URL'"]' 2> /dev/null &&
+                    # docker exec ${CONT_IPFS_NODE} ipfs config --json \
+                    #     API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]' 2> /dev/null &&
+                    docker restart ${CONT_IPFS_NODE} > /dev/null
+                ); do
+                    sleep 2
+                done
+                if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
+                    write_boostrap_peers $CLUSTER_BOOTSTRAP
+                    echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
+                    # eval cat $CLUSTER_CONFIG_FOLDER/peerstore
+                    # docker commit --change \
+                        # "CMD \"daemon --bootstrap "$CLUSTER_BOOTSTRAP"\"]" $CONT_IPFS_CLUSTER
+                    docker restart ${CONT_IPFS_CLUSTER} > /dev/null
+                fi
             fi
 
             if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then

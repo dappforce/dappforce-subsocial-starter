@@ -1,0 +1,22 @@
+version: "3"
+services:
+  node_validator:
+    image: dappforce/subsocial-node:$NODE_VERSION
+    container_name: $CONT_NODE_VALIDATOR
+    user:
+      subsocial:subsocial
+    restart: on-failure
+    command: subsocial-node
+      --db-cache 2048
+      --validator
+      --port 30334
+      --rpc-port 9933
+      $SUBSTRATE_NODE_EXTRA_OPTS
+    volumes:
+      - node_validator_data:/data
+    ports:
+      - "127.0.0.1:9933:9933"
+      - "30334:30334"
+    networks:
+      backend:
+        ipv4_address: $SUBSTRATE_VALIDATOR_IP

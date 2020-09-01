@@ -6,7 +6,7 @@ services:
     container_name: $CONT_WEBUI
     restart: on-failure
     environment:
-      - SUBSTRATE_URL=$SUBSTRATE_URL
+      - SUBSTRATE_RPC_URL=$SUBSTRATE_RPC_URL
       - OFFCHAIN_URL=$OFFCHAIN_URL
       - ELASTIC_URL=$ELASTIC_URL
       - APPS_URL=$APPS_URL
@@ -14,4 +14,4 @@ services:
       - OFFCHAIN_WS=$OFFCHAIN_WS
     networks:
       backend:
-        ipv4_address: 172.15.0.2
+        ipv4_address: $WEBUI_DOCKER_IP
