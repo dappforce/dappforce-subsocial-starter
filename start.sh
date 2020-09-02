@@ -51,7 +51,7 @@ export SUBSTRATE_VALIDATOR_IP=172.15.0.22
 export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
 export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
 export ELASTIC_URL=http://$ELASTICSEARCH_IP:9200
-export IPFS_URL=http://$IPFS_CLUSTER_IP:9094
+export IPFS_CLUSTER_URL=http://$IPFS_CLUSTER_IP:9094
 export IPFS_READONLY_URL=http://$IPFS_NODE_IP:8080
 export APPS_URL=http://127.0.0.1/bc
 export OFFCHAIN_WS=ws://127.0.0.1:3011
@@ -319,11 +319,11 @@ while :; do
                     IPFS_READONLY_URL=http://$3:8080
                     ;;
                 "cluster")
-                    IPFS_URL=http://$3:9944
+                    IPFS_CLUSTER_URL=http://$3:9944
                     ;;
                 "all")
                     IPFS_READONLY_URL=http://$3:8080
-                    IPFS_URL=http://$3:9094
+                    IPFS_CLUSTER_URL=http://$3:9094
                     ;;
                 -?*)
                     printf $COLOR_R'ERRORR: --ipfs-ip must be provided with (readonly/cluster/all)\n'$COLOR_RESET >&2
@@ -476,13 +476,17 @@ while :; do
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
                         API.HTTPHeaders.Access-Control-Allow-Origin \
-                        '["'$IPFS_CLUSTER_IP'", "'$OFFCHAIN_URL'"]' 2> /dev/null &&
-                    # docker exec ${CONT_IPFS_NODE} ipfs config --json \
-                    #     API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]' 2> /dev/null &&
+                        '["'$IPFS_CLUSTER_URL'", "'$OFFCHAIN_URL'"]' 2> /dev/null &&
                     docker restart ${CONT_IPFS_NODE} > /dev/null
                 ); do
-                    sleep 2
+                    sleep 1
                 done
+
+                until curl -s ${IPFS_READONLY_URL}/version > /dev/null ; do
+                    sleep 1
+                done
+
+                docker restart ${CONT_IPFS_CLUSTER} > /dev/null
                 if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
                     write_boostrap_peers $CLUSTER_BOOTSTRAP
                     echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
