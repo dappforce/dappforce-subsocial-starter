@@ -311,7 +311,7 @@ while :; do
             # TODO: regex check
             # TODO: add https support
             if [ -z $2 ] || [ -z $3 ]; then
-                printf $COLOR_R'ERROR: --ipfs-ip must be provided with (readonly/cluster/all) and an IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
+                printf $COLOR_R'ERROR: --ipfs-ip must be provided with (readonly/cluster/all) and IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
                 break;
             fi
             case $2 in
