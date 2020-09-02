@@ -51,7 +51,7 @@ export SUBSTRATE_VALIDATOR_IP=172.15.0.22
 export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
 export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
 export ELASTIC_URL=http://$ELASTICSEARCH_IP:9200
-export IPFS_URL=http://$IPFS_CLUSTER_IP:9094
+export IPFS_CLUSTER_URL=http://$IPFS_CLUSTER_IP:9094
 export IPFS_READONLY_URL=http://$IPFS_NODE_IP:8080
 export APPS_URL=http://127.0.0.1/bc
 export OFFCHAIN_WS=ws://127.0.0.1:3011
@@ -148,7 +148,7 @@ while :; do
         # Specify docker images tag
         --tag)
             if [ -z $2 ] || [[ $2 == *'--'* ]] ; then
-                printf $COLOR_R'WARN: --tag must be provided with a tag name argument\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --tag must be provided with a tag name argument\n'$COLOR_RESET >&2
                 break;
             else
                 export OFFCHAIN_VERSION=$2
@@ -254,57 +254,83 @@ while :; do
 
         --substrate-url)
             if [ -z $2 ] || [[ $2 =~ --.* ]] || ! [[ $2 =~ wss?://.*:?.* ]] ; then
-                printf $COLOR_R'WARN: --substrate-url must be provided with an ws(s)://IP:PORT argument\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --substrate-url must be provided with an ws(s)://IP:PORT argument\n'$COLOR_RESET >&2
                 break;
             else
                 export SUBSTRATE_RPC_URL=$2
-                printf $COLOR_Y'Substrate URL set to '$SUBSTRATE_RPC_URL'\n\n'$COLOR_RESET
+                printf $COLOR_Y'Substrate URL set to %s\n\n'$COLOR_RESET "$SUBSTRATE_RPC_URL"
                 shift
             fi
             ;;
 
         --offchain-url)
             if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
-                printf $COLOR_R'WARN: --offchain-url must be provided with URL argument\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --offchain-url must be provided with URL argument\n'$COLOR_RESET >&2
                 break;
             else
                 export OFFCHAIN_URL=$2
-                printf $COLOR_Y'Offchain URL set to '$2'\n\n'$COLOR_RESET
+                printf $COLOR_Y'Offchain URL set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
             ;;
 
         --elastic-url)
             if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
-                printf $COLOR_R'WARN: --elastic-url must be provided with an URL argument\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --elastic-url must be provided with an URL argument\n'$COLOR_RESET >&2
                 break;
             else
                 export ELASTIC_URL=$2
-                printf $COLOR_Y'Elasticsearch URL set to '$2'\n\n'$COLOR_RESET
+                printf $COLOR_Y'Elasticsearch URL set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
             ;;
 
         --webui-ip)
             if [ -z $2 ] || [[ $2 =~ --.* ]] ; then
-                printf $COLOR_R'WARN: --webui-ip must be provided with an IP:PORT argument\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --webui-ip must be provided with an IP:PORT argument\n'$COLOR_RESET >&2
                 break;
             else
                 export WEBUI_IP=$2
-                printf $COLOR_Y'Web UI IP set to '$2'\n\n'$COLOR_RESET
+                printf $COLOR_Y'Web UI IP set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
             ;;
 
         --apps-url)
             if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
-                printf $COLOR_R'WARN: --apps-url must be provided with an URL argument\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --apps-url must be provided with an URL argument\n'$COLOR_RESET >&2
                 break;
             else
                 export APPS_URL=$2
-                printf $COLOR_Y'JS Apps URL set to '$2'\n\n'$COLOR_RESET
+                printf $COLOR_Y'JS Apps URL set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
+            ;;
+
+        --ipfs-ip)
+            # TODO: regex check
+            # TODO: add https support
+            if [ -z $2 ] || [ -z $3 ]; then
+                printf $COLOR_R'ERROR: --ipfs-ip must be provided with (readonly/cluster/all) and IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
+                break;
+            fi
+            case $2 in
+                "readonly")
+                    IPFS_READONLY_URL=http://$3:8080
+                    ;;
+                "cluster")
+                    IPFS_CLUSTER_URL=http://$3:9094
+                    ;;
+                "all")
+                    IPFS_READONLY_URL=http://$3:8080
+                    IPFS_CLUSTER_URL=http://$3:9094
+                    ;;
+                -?*)
+                    printf $COLOR_R'ERRORR: --ipfs-ip must be provided with (readonly/cluster/all)\n'$COLOR_RESET >&2
+                    break;
+                    ;;
+            esac
+            printf $COLOR_Y'IPFS %s IP is set to %s\n\n'$COLOR_RESET "$2" "$3"
             ;;
 
         #################################################
@@ -313,7 +339,7 @@ while :; do
 
         --substrate-extra-opts)
             if [[ -z $2 ]] ; then
-                printf $COLOR_R'WARN: --substrate-extra-opts must be provided with arguments string\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --substrate-extra-opts must be provided with arguments string\n'$COLOR_RESET >&2
                 break;
             # elif [[ $2 =~ ^\"*\" ]]; then
             #     printf 'Usage example: '$COLOR_Y'--substrate-extra-opts "--name node --validator"\n'$COLOR_RESET >&2
@@ -326,7 +352,7 @@ while :; do
 
         --substrate-mode)
             if [ -z $2 ] ; then
-                printf $COLOR_R'USAGE: --substrate-mode (all/rpc/validator)\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'USAGE: --substrate-mode (all/rpc/validator)\n'$COLOR_RESET >&2
                 break;
             else
                 COMPOSE_FILES="${COMPOSE_FILES/${SELECTED_SUBSTRATE}/}"
@@ -361,7 +387,7 @@ while :; do
 
         --cluster-bootstrap)
             if [[ -z $2 ]] ; then
-                printf $COLOR_R'WARN: --cluster-bootstrap must be provided with arguments string\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --cluster-bootstrap must be provided with arguments string\n'$COLOR_RESET >&2
                 break;
             else
                 CLUSTER_BOOTSTRAP=$2
@@ -371,7 +397,7 @@ while :; do
 
         --cluster-identity-path)
             if [[ -z $2 ]]; then
-                printf $COLOR_R'WARN: --cluster-identity-path must be provided with path string\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --cluster-identity-path must be provided with path string\n'$COLOR_RESET >&2
                 break;
             else
                 mkdir -p $CLUSTER_CONFIG_FOLDER
@@ -387,7 +413,7 @@ while :; do
         # TODO: finish this argument
         --offchain-cors)
             if [[ -z $2 ]]; then
-                printf $COLOR_R'WARN: --offchain-cors must be provided with URL(s) string\n'$COLOR_RESET "$1" >&2
+                printf $COLOR_R'WARN: --offchain-cors must be provided with URL(s) string\n'$COLOR_RESET >&2
                 break;
             else
                 OFFCHAIN_CORS=$2
@@ -450,13 +476,17 @@ while :; do
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
                         API.HTTPHeaders.Access-Control-Allow-Origin \
-                        '["'$IPFS_CLUSTER_IP'", "'$OFFCHAIN_URL'"]' 2> /dev/null &&
-                    # docker exec ${CONT_IPFS_NODE} ipfs config --json \
-                    #     API.HTTPHeaders.Access-Control-Allow-Methods '["GET"]' 2> /dev/null &&
+                        '["'$IPFS_CLUSTER_URL'", "'$OFFCHAIN_URL'"]' 2> /dev/null &&
                     docker restart ${CONT_IPFS_NODE} > /dev/null
                 ); do
-                    sleep 2
+                    sleep 1
                 done
+
+                until curl -s ${IPFS_READONLY_URL}/version > /dev/null ; do
+                    sleep 1
+                done
+
+                docker restart ${CONT_IPFS_CLUSTER} > /dev/null
                 if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
                     write_boostrap_peers $CLUSTER_BOOTSTRAP
                     echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
