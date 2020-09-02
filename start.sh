@@ -319,7 +319,7 @@ while :; do
                     IPFS_READONLY_URL=http://$3:8080
                     ;;
                 "cluster")
-                    IPFS_CLUSTER_URL=http://$3:9944
+                    IPFS_CLUSTER_URL=http://$3:9094
                     ;;
                 "all")
                     IPFS_READONLY_URL=http://$3:8080
