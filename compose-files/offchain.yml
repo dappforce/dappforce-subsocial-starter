@@ -45,7 +45,6 @@ services:
     depends_on:
       - postgres
       - elasticsearch
-      - ipfs-cluster
     restart: on-failure
     environment:
       - NODE_ENV=production
