@@ -14,7 +14,7 @@ WEBUI_IP=127.0.0.1:80
 PROJECT_NAME="subsocial"
 FORCEPULL="false"
 export EXTERNAL_VOLUME=~/subsocial_data
-PRUNING_MODE="none"
+STOPPING_MODE="none"
 
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
 export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
@@ -164,9 +164,9 @@ while :; do
             ;;
 
         # Delete project's docker containers
-        --prune)
-            if [[ $2 == "all-volumes" ]] ; then PRUNING_MODE=$2
-            else PRUNING_MODE="default"
+        --stop)
+            if [[ $2 == "purge-volumes" ]] ; then STOPPING_MODE=$2
+            else STOPPING_MODE="default"
             fi
             ;;
 
@@ -438,11 +438,11 @@ while :; do
             ;;
 
         *)
-            if [ ${PRUNING_MODE} != "none" ]; then
+            if [ ${STOPPING_MODE} != "none" ]; then
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
 
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
-                if [[ ${PRUNING_MODE} == "all-volumes" ]]; then
+                if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
                     eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down -v
 
                     printf $COLOR_Y'Cleaning IPFS data, root may be required.\n'$COLOR_RESET
