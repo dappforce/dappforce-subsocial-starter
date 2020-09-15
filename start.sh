@@ -58,7 +58,8 @@ export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
 export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
 export ELASTIC_URL=http://$ELASTICSEARCH_IP:9200
 export IPFS_CLUSTER_URL=http://$IPFS_CLUSTER_IP:9094
-export IPFS_READONLY_URL=http://$IPFS_NODE_IP:8080
+export IPFS_NODE_URL=http://$IPFS_NODE_IP:5001
+export IPFS_READ_ONLY_NODE_URL=http://$IPFS_NODE_IP:8080
 export APPS_URL=http://127.0.0.1/bc
 export OFFCHAIN_WS=ws://127.0.0.1:3011
 
@@ -136,7 +137,8 @@ while :; do
             ELASTIC_URL='http://'$IP':9200'
             WEBUI_IP=$IP':80'
             APPS_URL='http://'$IP'/bc'
-            IPFS_READONLY_URL='http://'$IP':8080'
+            IPFS_READ_ONLY_NODE_URL='http://'$IP':8080'
+            IPFS_NODE_URL='http://'$IP':5001'
             OFFCHAIN_WS='ws://'$IP':3011'
 
             printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
@@ -314,18 +316,20 @@ while :; do
             # TODO: regex check
             # TODO: add https support
             if [ -z $2 ] || [ -z $3 ]; then
-                printf $COLOR_R'ERROR: --ipfs-ip must be provided with (readonly/cluster/all) and IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
+                printf $COLOR_R'ERROR: --ipfs-ip must be provided with (node/cluster/all) and IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
                 break;
             fi
             case $2 in
-                "readonly")
-                    IPFS_READONLY_URL=http://$3:8080
+                "node")
+                    IPFS_NODE_URL=http://$3:5001
+                    IPFS_READ_ONLY_NODE_URL=http://$3:8080
                     ;;
                 "cluster")
                     IPFS_CLUSTER_URL=http://$3:9094
                     ;;
                 "all")
-                    IPFS_READONLY_URL=http://$3:8080
+                    IPFS_NODE_URL=http://$3:5001
+                    IPFS_READ_ONLY_NODE_URL=http://$3:8080
                     IPFS_CLUSTER_URL=http://$3:9094
                     ;;
                 -?*)
@@ -485,7 +489,7 @@ while :; do
                     sleep 1
                 done
 
-                until curl -s ${IPFS_READONLY_URL}/version > /dev/null ; do
+                until curl -s ${IPFS_READ_ONLY_NODE_URL}/version > /dev/null ; do
                     sleep 1
                 done
 

@@ -10,7 +10,7 @@ services:
       - OFFCHAIN_URL=$OFFCHAIN_URL
       - ELASTIC_URL=$ELASTIC_URL
       - APPS_URL=$APPS_URL
-      - IPFS_URL=$IPFS_READONLY_URL
+      - IPFS_URL=$IPFS_READ_ONLY_NODE_URL
       - OFFCHAIN_WS=$OFFCHAIN_WS
     networks:
       backend:
