@@ -23,6 +23,12 @@ export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
 export CLUSTER_BOOTSTRAP=""
 export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
 
+# Substrate related variables
+export SUBSTRATE_NODE_EXTRA_OPTS=""
+
+# Offchain related variables
+export OFFCHAIN_CORS="http://localhost"
+
 # Version variables
 export POSTGRES_VERSION=latest
 export ELASTICSEARCH_VERSION=7.4.1
@@ -82,9 +88,6 @@ COMPOSE_FILES+=${SELECTED_SUBSTRATE}
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
-
-export SUBSTRATE_NODE_EXTRA_OPTS=""
-export OFFCHAIN_CORS="http://localhost"
 
 # colors
 COLOR_R="\033[0;31m"    # red
