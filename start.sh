@@ -14,7 +14,7 @@ WEBUI_IP=127.0.0.1:80
 PROJECT_NAME="subsocial"
 FORCEPULL="false"
 export EXTERNAL_VOLUME=~/subsocial_data
-PRUNING_MODE="none"
+STOPPING_MODE="none"
 
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
 export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
@@ -22,6 +22,12 @@ export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
 # Other IPFS Cluster variables
 export CLUSTER_BOOTSTRAP=""
 export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
+
+# Substrate related variables
+export SUBSTRATE_NODE_EXTRA_OPTS=""
+
+# Offchain related variables
+export OFFCHAIN_CORS="http://localhost"
 
 # Version variables
 export POSTGRES_VERSION=latest
@@ -52,7 +58,8 @@ export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
 export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
 export ELASTIC_URL=http://$ELASTICSEARCH_IP:9200
 export IPFS_CLUSTER_URL=http://$IPFS_CLUSTER_IP:9094
-export IPFS_READONLY_URL=http://$IPFS_NODE_IP:8080
+export IPFS_NODE_URL=http://$IPFS_NODE_IP:5001
+export IPFS_READ_ONLY_NODE_URL=http://$IPFS_NODE_IP:8080
 export APPS_URL=http://127.0.0.1/bc
 export OFFCHAIN_WS=ws://127.0.0.1:3011
 
@@ -82,9 +89,6 @@ COMPOSE_FILES+=${SELECTED_SUBSTRATE}
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
-
-export SUBSTRATE_NODE_EXTRA_OPTS=""
-export OFFCHAIN_CORS="http://localhost"
 
 # colors
 COLOR_R="\033[0;31m"    # red
@@ -133,7 +137,8 @@ while :; do
             ELASTIC_URL='http://'$IP':9200'
             WEBUI_IP=$IP':80'
             APPS_URL='http://'$IP'/bc'
-            IPFS_READONLY_URL='http://'$IP':8080'
+            IPFS_READ_ONLY_NODE_URL='http://'$IP':8080'
+            IPFS_NODE_URL='http://'$IP':5001'
             OFFCHAIN_WS='ws://'$IP':3011'
 
             printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
@@ -161,9 +166,9 @@ while :; do
             ;;
 
         # Delete project's docker containers
-        --prune)
-            if [[ $2 == "all-volumes" ]] ; then PRUNING_MODE=$2
-            else PRUNING_MODE="default"
+        --stop)
+            if [[ $2 == "purge-volumes" ]] ; then STOPPING_MODE=$2
+            else STOPPING_MODE="default"
             fi
             ;;
 
@@ -311,18 +316,20 @@ while :; do
             # TODO: regex check
             # TODO: add https support
             if [ -z $2 ] || [ -z $3 ]; then
-                printf $COLOR_R'ERROR: --ipfs-ip must be provided with (readonly/cluster/all) and IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
+                printf $COLOR_R'ERROR: --ipfs-ip must be provided with (node/cluster/all) and IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
                 break;
             fi
             case $2 in
-                "readonly")
-                    IPFS_READONLY_URL=http://$3:8080
+                "node")
+                    IPFS_NODE_URL=http://$3:5001
+                    IPFS_READ_ONLY_NODE_URL=http://$3:8080
                     ;;
                 "cluster")
                     IPFS_CLUSTER_URL=http://$3:9094
                     ;;
                 "all")
-                    IPFS_READONLY_URL=http://$3:8080
+                    IPFS_NODE_URL=http://$3:5001
+                    IPFS_READ_ONLY_NODE_URL=http://$3:8080
                     IPFS_CLUSTER_URL=http://$3:9094
                     ;;
                 -?*)
@@ -435,14 +442,14 @@ while :; do
             ;;
 
         *)
-            if [ ${PRUNING_MODE} != "none" ]; then
+            if [ ${STOPPING_MODE} != "none" ]; then
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
 
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
-                if [[ ${PRUNING_MODE} == "all-volumes" ]]; then
+                if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
                     eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down -v
 
-                    printf $COLOR_Y'Cleaning IPFS data, root may be required.\n'$COLOR_RESET
+                    printf $COLOR_Y'Cleaning IPFS data and Offchain state, root may be required.\n'$COLOR_RESET
                     sudo rm -rf $EXTERNAL_VOLUME || true
                 fi
 
@@ -482,7 +489,7 @@ while :; do
                     sleep 1
                 done
 
-                until curl -s ${IPFS_READONLY_URL}/version > /dev/null ; do
+                until curl -s ${IPFS_READ_ONLY_NODE_URL}/version > /dev/null ; do
                     sleep 1
                 done
 
