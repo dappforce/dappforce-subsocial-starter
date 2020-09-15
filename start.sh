@@ -449,7 +449,7 @@ while :; do
                 if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
                     eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down -v
 
-                    printf $COLOR_Y'Cleaning IPFS data, root may be required.\n'$COLOR_RESET
+                    printf $COLOR_Y'Cleaning IPFS data and Offchain state, root may be required.\n'$COLOR_RESET
                     sudo rm -rf $EXTERNAL_VOLUME || true
                 fi
 
