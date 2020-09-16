@@ -1,6 +1,6 @@
 # Subsocial Starter by [DappForce](https://github.com/dappforce)
 
-This guide will walk you through starting and entire Subsocial stack with just one shell script.
+This guide will walk you through starting an entire Subsocial stack with just one shell script.
 
 To learn more about Subsocial, please visit us at [Subsocial.Network](http://subsocial.network/).
 
