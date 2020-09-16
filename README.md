@@ -188,9 +188,9 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--substrate-url`                  | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944` |
 | `--offchain-url`                   | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001` |
 | `--elastic-url`                    | Specify Elasticsearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200` |
-| `--webui-ip`                       | Specify Web UI ip address. Example: `./start.sh --global --substrate-url http://172.15.0.2` |
+| `--webui-ip`                       | Specify Web UI IP address. Example: `./start.sh --global --substrate-url http://172.15.0.2` |
 | `--apps-url`                       | Specify JS Apps URL. Example: `./start.sh --global --apps-url http://172.15.0.6:3002` |
-| `--ipfs-ip <readonly/cluster/all>` | Specify custom IPFS ip for IPFS Gateway (readonly), IPFS Cluster or both. |
+| `--ipfs-ip <readonly/cluster/all>` | Specify custom IPFS IP for IPFS Gateway (readonly), IPFS Cluster or both. |
 | `--substrate-extra-opts`           | Start Substrate node with additional Substrate CLI arguments. Example: `./start.sh --substrate-extra-opts "--dev --name my-subsocial-node"` |
 | `--substrate-mode <rpc/validator>` | Start Substrate in a specified mode (`rpc` or `validator`). By default (when isn't specified) starts both nodes RPC and Authority (validator). |
 | `--cluster-peers`                  | Shows IPFS Cluster peers if it's running.                    |
