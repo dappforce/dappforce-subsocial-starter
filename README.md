@@ -16,6 +16,8 @@ Subsocial is the recipient of a technical grant from Web3 Foundation - [official
 
 ## Getting Started
 
+
+
 ### Requirements
 
 Linux environment or macOS with [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/) installed.
@@ -40,7 +42,7 @@ sudo systemctl disable docker
 
 After running the commands, logout and log back in.  The Docker commands should now run without sudo.
 
-<br>
+------
 
 ### Easy start
 
@@ -60,7 +62,7 @@ cd dappforce-subsocial-starter
 ./start.sh --substrate-mode rpc --substrate-extra-opts "--dev"
 ```
 
-<br>
+------
 
 ### Launch Subsocial parts one by one
 
@@ -170,7 +172,7 @@ By default it will start two containers: IPFS Cluster and IPFS Node (Gateway).
 
 ⚠️ ***Experimentally*** ⚠️ you can specify `identity.json` and initial peers (bootnodes) with `--cluster-identity-path` and `--cluster-bootstrap` to be able to connect to Subsocial as a cluster peer **(this may not work yet)**.
 
-<br>
+------
 
 ### Advanced
 
