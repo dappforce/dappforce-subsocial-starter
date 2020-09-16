@@ -20,8 +20,6 @@ Subsocial is the recipient of a technical grant from Web3 Foundation - [official
 
 ### Requirements
 
-------
-
 Linux environment or macOS with [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/) installed.
 
 1. Test that Docker was installed correctly, try to run the following commands:
@@ -48,8 +46,6 @@ After running the commands, logout and log back in.  The Docker commands should 
 
 ### Easy start
 
-------
-
 If you're new to Subsocial, it is best to start with the defaults.
 
 #### Clone a starter repo
@@ -69,8 +65,6 @@ cd dappforce-subsocial-starter
 
 
 ### Launch Subsocial parts one by one
-
-------
 
 #### Substrate Nodes
 
@@ -181,8 +175,6 @@ By default it will start two containers: IPFS Cluster and IPFS Node (Gateway).
 
 
 ### Advanced
-
-------
 
 #### Startup Options 
 
