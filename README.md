@@ -4,19 +4,13 @@ This guide will walk you through starting an entire Subsocial stack with just on
 
 To learn more about Subsocial, please visit us at [Subsocial.Network](http://subsocial.network/).
 
-
-
 ## Supported by Web3 Foundation
 
-[![Web3 Foundation grants badge](https://github.com/dappforce/dappforce-subsocial/raw/master/w3f-badge.svg)](https://github.com/dappforce/dappforce-subsocial/blob/master/w3f-badge.svg)
+<img src="https://github.com/dappforce/dappforce-subsocial/blob/master/w3f-badge.svg" width="100%" height="200" alt="Web3 Foundation grants badge" />
 
 Subsocial is the recipient of a technical grant from Web3 Foundation - [official announcement](https://medium.com/web3foundation/web3-foundation-grants-wave-3-recipients-6426e77f1230). We have successfully delivered on all three milestones submitted in our grant application. 
 
-
-
 ## Getting Started
-
-
 
 ### Requirements
 
@@ -49,7 +43,6 @@ After running the commands, logout and log back in.  The Docker commands should 
 If you're new to Subsocial, it is best to start with the defaults.
 
 #### Clone a starter repo
-
 
 ```
 git clone https://github.com/dappforce/dappforce-subsocial-starter.git
@@ -113,14 +106,12 @@ To stop Substrate nodes:
 ./start.sh --only-substrate --stop purge-volumes
 ```
 
-
-
 #### Off-chain Storage
 
 | Container name            | External Ports | Local URL                                       | Description                                                  |
 | ------------------------- | -------------- | ----------------------------------------------- | ------------------------------------------------------------ |
 | `subsocial-offchain`      | `3001`, `3011` | http://localhost:3001/v1                        | [Subsocial Offchain](https://github.com/dappforce/dappforce-subsocial-offchain) |
-| `subsocial-elasticsearch` | `9200`         | [http://localhost:9200](http://localhost:9200/) | [Elasticsearch](https://www.elastic.co/what-is/elasticsearch) |
+| `subsocial-elasticsearch` | `9200`         | http://localhost:9200                           | [Elasticsearch](https://www.elastic.co/what-is/elasticsearch) |
 | `subsocial-postgres`      |                |                                                 | [PostgreSQL](https://www.postgresql.org/about/)              |
 
 ##### Start Containers
@@ -141,22 +132,18 @@ By default, three containers will be started: PostgreSQL, ElasticSearch and offc
 
 To start offchain without IPFS (considering running it on another server) by following the next steps:
 
-- [Run IPFS](https://github.com/LearnPolkadot/dappforce-subsocial-starter/blob/master/README.md#ipfs-cluster) on external server
-
+- [Run IPFS](#ipfs-cluster) on external server
 - Run offchain with next arguments:
-
-```
+```bash
 ./start.sh --only-offchain --no-ipfs --ipfs-ip all <IPFS hosting server IP>
 ```
-
-
 
 #### IPFS Cluster
 
 | Container name           | External Ports | Local URL                                       | Description                                                  |
 | ------------------------ | -------------- | ----------------------------------------------- | ------------------------------------------------------------ |
-| `subsocial-ipfs-node`    | `8080`         | [http://localhost:8080](http://localhost:8080/) | [IPFS Node](https://github.com/ipfs/go-ipfs/blob/master/README.md) |
-| `subsocial-ipfs-cluster` | `9094`, `9096` | [http://localhost:9094](http://localhost:9094/) | [IPFS Cluster](https://github.com/ipfs/ipfs-cluster/blob/master/README.md) |
+| `subsocial-ipfs-node`    | `8080`         | http://localhost:8080                           | [IPFS Node](https://github.com/ipfs/go-ipfs/blob/master/README.md) |
+| `subsocial-ipfs-cluster` | `9094`, `9096` | http://localhost:9094                           | [IPFS Cluster](https://github.com/ipfs/ipfs-cluster/blob/master/README.md) |
 
 ##### Start Containers
 
@@ -178,7 +165,7 @@ By default it will start two containers: IPFS Cluster and IPFS Node (Gateway).
 
 #### Startup Options 
 
-The [start.sh](https://github.com/LearnPolkadot/dappforce-subsocial-starter/blob/master/start.sh) script comes with a set of options for customizing project startup.
+The [start.sh](start.sh) script comes with a set of options for customizing project startup.
 
 | Argument                           | Description                                                  |
 | ---------------------------------- | ------------------------------------------------------------ |
@@ -213,7 +200,7 @@ The [start.sh](https://github.com/LearnPolkadot/dappforce-subsocial-starter/blob
 
 #### Proxy
 
-By default the project will start one Nginx container with automatically configured proxy. If it is running, you can open the **[Web UI](https://github.com/LearnPolkadot/dappforce-subsocial-starter/blob/master/README.md#web-ui)** or **[Blockchain Explorer](https://github.com/LearnPolkadot/dappforce-subsocial-starter/blob/master/README.md#blockchain-explorer-aka-js-apps)** .
+By default the project will start one Nginx container with automatically configured proxy. If it is running, you can open the **[Web UI](#web-ui)** or **[Blockchain Explorer](#blockchain-explorer-aka-js-apps)** .
 
 | Container name    | External Port | Local URL | Description |
 | ----------------- | ------------- | --------- | ----------- |
@@ -223,19 +210,19 @@ By default the project will start one Nginx container with automatically configu
 
 By default the project will start one container for the Web UI. If running, you can open the **Subsocial** in your browser:
 
-http://localhost/
+[http://localhost/](http://localhost)
 
 This can be managed with `--no-webui` and `--only-webui` flags.
 
 | Container name     | External Port | Local URL                             | Description                                                  |
 | ------------------ | ------------- | ------------------------------------- | ------------------------------------------------------------ |
-| `subsocial-web-ui` |               | [http://localhost](http://localhost/) | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui) |
+| `subsocial-web-ui` |               | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui) |
 
 #### Blockchain Explorer (aka JS Apps)
 
 By default the project will start one container for JS Apps. If it is running, you can successfully go to the '*Advanced*' tab in the Web UI side-menu:
 
-http://localhost/bc
+[http://localhost/bc](http://localhost/bc)
 
 This can be managed with `--no-apps` and `--only-apps` flags.
 
@@ -243,8 +230,6 @@ This can be managed with `--no-apps` and `--only-apps` flags.
 | ---------------- | ------------- | ------------------- | ------------------------------------------------------------ |
 | `subsocial-apps` |               | http://localhost/bc | [Subsocial Apps](https://github.com/dappforce/dappforce-subsocial-apps) |
 
-
-
 ## License
 
-Subsocial is [GPL 3.0](https://github.com/LearnPolkadot/dappforce-subsocial-starter/blob/master/LICENSE) licensed.
+Subsocial is [GPL 3.0](./LICENSE) licensed.
