@@ -14,7 +14,13 @@ Subsocial is the recipient of a technical grant from Web3 Foundation - [official
 
 
 
-## Requirements
+## Getting Started
+
+
+
+### Requirements
+
+------
 
 Linux environment or macOS with [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/) installed.
 
@@ -40,13 +46,13 @@ After running the commands, logout and log back in.  The Docker commands should 
 
 
 
-## Getting Started
-
 ### Easy start
+
+------
 
 If you're new to Subsocial, it is best to start with the defaults.
 
-1. Clone a starter repo:
+#### Clone a starter repo
 
 
 ```
@@ -54,7 +60,7 @@ git clone https://github.com/dappforce/dappforce-subsocial-starter.git
 cd dappforce-subsocial-starter 
 ```
 
-2. Start the entire Subsocial project locally:
+#### Start entire Subsocial project locally
 
 ```
 ./start.sh --substrate-mode rpc --substrate-extra-opts "--dev"
@@ -63,6 +69,8 @@ cd dappforce-subsocial-starter
 
 
 ### Launch Subsocial parts one by one
+
+------
 
 #### Substrate Nodes
 
@@ -111,6 +119,8 @@ To stop Substrate nodes:
 ./start.sh --only-substrate --stop purge-volumes
 ```
 
+
+
 #### Off-chain Storage
 
 | Container name            | External Ports | Local URL                                       | Description                                                  |
@@ -118,6 +128,8 @@ To stop Substrate nodes:
 | `subsocial-offchain`      | `3001`, `3011` | http://localhost:3001/v1                        | [Subsocial Offchain](https://github.com/dappforce/dappforce-subsocial-offchain) |
 | `subsocial-elasticsearch` | `9200`         | [http://localhost:9200](http://localhost:9200/) | [Elasticsearch](https://www.elastic.co/what-is/elasticsearch) |
 | `subsocial-postgres`      |                |                                                 | [PostgreSQL](https://www.postgresql.org/about/)              |
+
+##### Start Containers
 
 By default, three containers will be started: PostgreSQL, ElasticSearch and offchain (Substrate events handler, Subsocial API).
 
@@ -143,12 +155,16 @@ To start offchain without IPFS (considering running it on another server) by fol
 ./start.sh --only-offchain --no-ipfs --ipfs-ip all <IPFS hosting server IP>
 ```
 
+
+
 #### IPFS Cluster
 
 | Container name           | External Ports | Local URL                                       | Description                                                  |
 | ------------------------ | -------------- | ----------------------------------------------- | ------------------------------------------------------------ |
 | `subsocial-ipfs-node`    | `8080`         | [http://localhost:8080](http://localhost:8080/) | [IPFS Node](https://github.com/ipfs/go-ipfs/blob/master/README.md) |
 | `subsocial-ipfs-cluster` | `9094`, `9096` | [http://localhost:9094](http://localhost:9094/) | [IPFS Cluster](https://github.com/ipfs/ipfs-cluster/blob/master/README.md) |
+
+##### Start Containers
 
 By default it will start two containers: IPFS Cluster and IPFS Node (Gateway).
 
@@ -162,11 +178,11 @@ By default it will start two containers: IPFS Cluster and IPFS Node (Gateway).
 
 ⚠️ ***Experimentally*** ⚠️ you can specify `identity.json` and initial peers (bootnodes) with `--cluster-identity-path` and `--cluster-bootstrap` to be able to connect to Subsocial as a cluster peer **(this may not work yet)**.
 
-------
-
 
 
 ### Advanced
+
+------
 
 #### Startup Options 
 
