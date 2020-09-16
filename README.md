@@ -10,7 +10,7 @@ To learn more about Subsocial, please visit us at [Subsocial.Network](http://sub
 
 [![Web3 Foundation grants badge](https://github.com/dappforce/dappforce-subsocial/raw/master/w3f-badge.svg)](https://github.com/dappforce/dappforce-subsocial/blob/master/w3f-badge.svg)
 
-Subsocial is a recipient of a technical grant from Web3 Foundation - [official announcement](https://medium.com/web3foundation/web3-foundation-grants-wave-3-recipients-6426e77f1230). We have successfully delivered on all three milestones submitted in our grant application. 
+Subsocial is the recipient of a technical grant from Web3 Foundation - [official announcement](https://medium.com/web3foundation/web3-foundation-grants-wave-3-recipients-6426e77f1230). We have successfully delivered on all three milestones submitted in our grant application. 
 
 
 
