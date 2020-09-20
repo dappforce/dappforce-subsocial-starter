@@ -69,7 +69,7 @@ cd dappforce-subsocial-starter
 
 By default two nodes will be started: *RPC* and *validator*.
 
-​We will use `--only-substrate` option to run only Substrate nodes:
+We will use `--only-substrate` option to run only Substrate nodes:
 
 ```
 ./start.sh --only-substrate
@@ -82,16 +82,16 @@ which is connected to Subsocial network:
 ./start.sh --only-substrate --substrate-mode-rpc --substrate-extra-opts "--name MyNodeName --pruning archive"
 ```
 
-​However, you will have no ability to manage anything inside of them.
+However, you will have no ability to manage anything inside of them.
 To do this, you may want to launch Substrate node with extra option `--dev`.
 
-​For example:
+For example:
 
 ```
 ./start.sh --only-substrate --substrate-mode rpc --substrate-extra-opts "--dev"
 ```
 
-​Here we also used the `--substrate-mode rpc` option.
+Here we also used the `--substrate-mode rpc` option.
 That is because running in development mode we do not need any validators.
 
 #### Stop Substrate nodes
@@ -102,13 +102,13 @@ To stop Substrate nodes:
 ./start.sh --only-substrate --stop
 ```
 
-​If you want not only stop containers, but also clean data, go with:
+If you want not only stop containers, but also clean data, go with:
 
 ```
 ./start.sh --only-substrate --stop purge-volumes
 ```
 
-### Off-chain services
+### Offchain services
 
 | Container name            | External Ports | Local URL                                       | Description                                                  |
 | ------------------------- | -------------- | ----------------------------------------------- | ------------------------------------------------------------ |
@@ -123,13 +123,13 @@ By default, three containers will be started:
 - ElasticSearch – responsible for full-text search.
 - PostgreSQL – responsible personal news feeds and notifications.
 
-​We will use `--only-offchain` to run Offchain only:
+We will use `--only-offchain` to run Offchain only:
 
 ```
 ./start.sh --only-offchain
 ```
 
-​In most cases you will want to launch Offchain on a separate server.
+In most cases you will want to launch Offchain on a separate server.
 If so, you will want to use next command:
 
 ```
@@ -155,7 +155,7 @@ You can start Offchain without IPFS node by following the next steps:
 
 By default it will start two containers: IPFS Cluster and IPFS Node (gateway).
 
-​We use `--only-ipfs` to run IPFS only:
+We use `--only-ipfs` to run IPFS only:
 
 ```
 ./start.sh --only-ipfs --offchain-url <Offchain URL>
