@@ -17,11 +17,13 @@ export EXTERNAL_VOLUME=~/subsocial_data
 STOPPING_MODE="none"
 
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
-export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
+export CLUSTER_SECRET=""
 
 # Other IPFS Cluster variables
+export CLUSTER_PEERNAME="Subsocial Cluster"
 export CLUSTER_BOOTSTRAP=""
 export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
+export IPFS_CLUSTER_CONSENSUS="crdt"
 
 # Substrate related variables
 export SUBSTRATE_NODE_EXTRA_OPTS=""
@@ -413,12 +415,38 @@ while :; do
             fi
             ;;
 
+        --cluster-mode)
+            case $2 in
+                raft)
+                    CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
+                    ;;
+                crtd) ;;
+                -?*)
+                    printf $COLOR_R'WARN: --cluster-mode provided with unknown option %s\n'$COLOR_RESET "$2" >&2
+                    break
+                    ;;
+            esac
+
+            IPFS_CLUSTER_CONSENSUS=$2
+            shift
+            ;;
+
         --cluster-secret)
             if [[ -z $2 ]]; then
                 printf $COLOR_R'WARN: --cluster-secret must be provided with a secret string\n'$COLOR_RESET >&2
                 break;
             else
                 CLUSTER_SECRET=$2
+            fi
+            ;;
+
+        --cluster-peername)
+            if [[ -z $2 ]]; then
+                printf $COLOR_R'WARN: --cluster-peername must be provided with a peer name string\n'$COLOR_RESET >&2
+                break;
+            else
+                CLUSTER_PEERNAME=$2
+                shift
             fi
             ;;
 
