@@ -1,7 +1,5 @@
 version: "3"
 services:
-  ## IPFS Cluster #################################
-  #################################################
 
   ipfs-node:
     image: ipfs/go-ipfs:$IPFS_NODE_VERSION
@@ -23,8 +21,6 @@ services:
     restart: on-failure
     depends_on:
       - ipfs-node
-    # command: daemon
-      # --bootstrap $CLUSTER_BOOTSTRAP
     environment:
       CLUSTER_PEERNAME: "Subsocial Cluster"
       CLUSTER_SECRET: ${CLUSTER_SECRET} # From shell variable if set
@@ -41,6 +37,3 @@ services:
     networks:
       backend:
         ipv4_address: $IPFS_CLUSTER_IP
-
-#################################################
-#################################################

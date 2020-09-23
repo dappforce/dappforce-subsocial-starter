@@ -497,9 +497,6 @@ while :; do
                 if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
                     write_boostrap_peers $CLUSTER_BOOTSTRAP
                     echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
-                    # eval cat $CLUSTER_CONFIG_FOLDER/peerstore
-                    # docker commit --change \
-                        # "CMD \"daemon --bootstrap "$CLUSTER_BOOTSTRAP"\"]" $CONT_IPFS_CLUSTER
                     docker restart ${CONT_IPFS_CLUSTER} > /dev/null
                 fi
             fi
