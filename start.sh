@@ -413,6 +413,15 @@ while :; do
             fi
             ;;
 
+        --cluster-secret)
+            if [[ -z $2 ]]; then
+                printf $COLOR_R'WARN: --cluster-secret must be provided with a secret string\n'$COLOR_RESET >&2
+                break;
+            else
+                CLUSTER_SECRET=$2
+            fi
+            ;;
+
         #################################################
         # Extra options for offchain
         #################################################
