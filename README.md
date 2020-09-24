@@ -163,9 +163,11 @@ We use `--only-ipfs` to run IPFS only:
 
 `--offchain-url` is mandatory here, because of CORS are used for IPFS cluster access.
 
-⚠️ ***Experimentally*** ⚠️ you can specify `identity.json` and initial peers (bootnodes)
-with `--cluster-identity-path` and `--cluster-bootstrap` to be able to connect to Subsocial
-as a cluster peer **(this may not work yet)**.
+You can specify initial peers (bootnodes) to be able to connect to Subsocial as a cluster peer:
+
+```
+./start.sh --only-ipfs --cluster-bootstrap "/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWRRyJpS847KJQCEXqWC3AFjaweTBtVvA8DmLz9RxA7yQW"
+```
 
 ## Advanced
 
@@ -201,7 +203,9 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--substrate-mode <rpc/validator>` | Start Substrate in a specified mode (`rpc` or `validator`). By default (when isn't specified) starts both nodes RPC and Authority (validator). |
 | `--cluster-peers`                  | Shows IPFS Cluster peers if it's running.                    |
 | `--cluster-bootstrap "list"`       | Specify initial IPFS Cluster peers as if it's done via `ipfs-cluster-service` CLI. Example: `./start.sh --cluster-bootstrap "/ip4/<FIRST_IP>/tcp/9066/<FIRST_IDENTITY_ID>, /ip4/<SECOND_IP>/tcp/9066/<SECOND_IDENTITY_ID>"` |
-| `--cluster-identity-path "path"`   | Specify IPFS Cluster `identity.json` to copy to initial cluster config. |
+| `--cluster-mode <crdt/raft>`       | Specify IPFS Cluster consensus mode, which can be `crdt` or `raft`. |
+| `--cluster-secret`                 | Specify IPFS Cluster secret if consensus is RAFT. This one should be equal for all cluster nodes. |
+| `--cluster-peername`               | Specify IPFS Cluster peer name. This one should be unique for all cluster nodes. |
 | `--offchain-cors`                  | Specify Offchain CORS (from what URL or IP it will be accessible). Example: `./start.sh --only-offchain --offchain-cors "https://mydomain.com"` |
 
 ### Nginx proxy for web apps

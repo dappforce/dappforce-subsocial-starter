@@ -404,17 +404,6 @@ while :; do
             fi
             ;;
 
-        --cluster-identity-path)
-            if [[ -z $2 ]]; then
-                printf $COLOR_R'WARN: --cluster-identity-path must be provided with path string\n'$COLOR_RESET >&2
-                break;
-            else
-                mkdir -p $CLUSTER_CONFIG_FOLDER
-                cp $2 $CLUSTER_CONFIG_FOLDER
-                shift
-            fi
-            ;;
-
         --cluster-mode)
             case $2 in
                 raft)
