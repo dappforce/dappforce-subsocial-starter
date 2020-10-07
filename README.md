@@ -201,7 +201,7 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--ipfs-ip <readonly/cluster/all>` | Specify custom IPFS IP for IPFS Gateway (readonly), IPFS Cluster or both. |
 | `--substrate-extra-opts`           | Start Substrate node with additional Substrate CLI options. Example: `./start.sh --substrate-extra-opts "--dev --name my-subsocial-node"` |
 | `--substrate-mode <rpc/validator>` | Start Substrate in a specified mode (`rpc` or `validator`). By default (when isn't specified) starts both nodes RPC and Authority (validator). |
-| `--cluster-peers`                  | Shows IPFS Cluster peers if it's running.                    |
+| `--cluster-id`                     | Shows IPFS Cluster peers if it's running. |
 | `--cluster-bootstrap "list"`       | Specify initial IPFS Cluster peers as if it's done via `ipfs-cluster-service` CLI. Example: `./start.sh --cluster-bootstrap "/ip4/<FIRST_IP>/tcp/9066/<FIRST_IDENTITY_ID>, /ip4/<SECOND_IP>/tcp/9066/<SECOND_IDENTITY_ID>"` |
 | `--cluster-mode <crdt/raft>`       | Specify IPFS Cluster consensus mode, which can be `crdt` or `raft`. |
 | `--cluster-secret`                 | Specify IPFS Cluster secret if consensus is RAFT. This one should be equal for all cluster nodes. |

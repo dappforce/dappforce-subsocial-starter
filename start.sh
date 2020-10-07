@@ -391,8 +391,8 @@ while :; do
         # Extra options for IPFS cluster
         #################################################
 
-        --cluster-peers)
-            docker exec subsocial-ipfs-cluster ipfs-cluster-ctl peers ls
+        --cluster-id)
+            docker exec subsocial-ipfs-cluster ipfs-cluster-ctl id
             break;
             ;;
 
