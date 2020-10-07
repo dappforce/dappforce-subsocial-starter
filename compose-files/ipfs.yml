@@ -26,7 +26,7 @@ services:
       IPFS_CLUSTER_CONSENSUS: ${IPFS_CLUSTER_CONSENSUS}
       CLUSTER_SECRET: ${CLUSTER_SECRET} # From shell variable if set
       CLUSTER_IPFSHTTP_NODEMULTIADDRESS: /dns4/ipfs-node/tcp/5001
-      CLUSTER_CRDT_TRUSTEDPEERS: '*' # Trust all peers in Cluster (initially)
+      CLUSTER_CRDT_TRUSTEDPEERS: '' # Initially nobody is trusted
       CLUSTER_RESTAPI_CORSALLOWEDORIGINS: '${OFFCHAIN_URL}'
       CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS: /ip4/0.0.0.0/tcp/9094 # Expose API
       CLUSTER_MONITORPINGINTERVAL: 2s # Speed up peer discovery

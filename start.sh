@@ -442,6 +442,54 @@ while :; do
             fi
             ;;
 
+        --cluster-peers)
+            # Test whether jq is installed and install if not
+            while ! type jq > /dev/null; do
+                printf $COLOR_R'WARN: jq is not installed on your system. Trying to install, root permissions may be required...\n'$COLOR_RESET >&2
+                sudo apt install jq
+                break;
+            done
+
+            if [ -z '$2' ] || [ -z '$3' ]; then
+                printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) and URI(s) JSON array\n' >&2
+                printf "Example of rewriting peers: "$COLOR_RESET"--cluster-peers override '[\"*\"]'\n" >&2
+                printf $COLOR_R"Example of adding a peer: "$COLOR_RESET"--cluster-peers add '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
+                printf $COLOR_R"Example of removing a peer: "$COLOR_RESET"--cluster-peers remove '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
+                printf $COLOR_R"\nWhere "$COLOR_RESET"\"Peer URI\""$COLOR_R" looks like: "$COLOR_RESET"/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V\n" >&2
+                break;
+            fi
+
+            _cluster_config_path=$CLUSTER_CONFIG_FOLDER/service.json
+            if [[ ! -f $_cluster_config_path ]]; then
+                printf $COLOR_R'ERROR: IPFS Cluster is not yet started.\n' >&2
+                prtinf '>> Start IPFS Cluster to create config JSON\n'$COLOR_RESET >&2
+                break;
+            fi
+
+            case $2 in
+                "add")
+                    _new_trusted_peers_query=".consensus.$IPFS_CLUSTER_CONSENSUS.trusted_peers += [$3]"
+                    ;;
+                "remove")
+                    _new_trusted_peers_query=".consensus.$IPFS_CLUSTER_CONSENSUS.trusted_peers -= [$3]"
+                    ;;
+                "override")
+                    _new_trusted_peers_query=".consensus.$IPFS_CLUSTER_CONSENSUS.trusted_peers = $3"
+                    ;;
+                *)
+                    printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) only\n'$COLOR_RESET >&2
+                    break;  
+                    ;;
+            esac
+
+            _temp_file_name=tmp.$$.json
+            jq "$_new_trusted_peers_query" $_cluster_config_path > $_temp_file_name
+            mv $_temp_file_name $_cluster_config_path
+
+            printf $COLOR_Y'%s (%s) on IPFS Cluster trusted peers\n\n'$COLOR_RESET "$3" "$2"
+            shift 2
+            ;;
+
         #################################################
         # Extra options for offchain
         #################################################
