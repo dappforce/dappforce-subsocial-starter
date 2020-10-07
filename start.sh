@@ -334,12 +334,14 @@ while :; do
                     IPFS_READ_ONLY_NODE_URL=http://$3:8080
                     IPFS_CLUSTER_URL=http://$3:9094
                     ;;
-                -?*)
-                    printf $COLOR_R'ERRORR: --ipfs-ip must be provided with (readonly/cluster/all)\n'$COLOR_RESET >&2
+                *)
+                    printf $COLOR_R'ERROR: --ipfs-ip must be provided with (readonly/cluster/all)\n'$COLOR_RESET >&2
                     break;
                     ;;
             esac
+
             printf $COLOR_Y'IPFS %s IP is set to %s\n\n'$COLOR_RESET "$2" "$3"
+            shift 2
             ;;
 
         #################################################
@@ -375,7 +377,7 @@ while :; do
                     validator)
                         SELECTED_SUBSTRATE=${SUBSTRATE_VALIDATOR_COMPOSE}
                         ;;
-                    -?*)
+                    *)
                         printf $COLOR_R'WARN: --substrate-mode provided with unknown option %s\n'$COLOR_RESET "$2" >&2
                         break
                         ;;
@@ -409,8 +411,9 @@ while :; do
                 raft)
                     CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
                     ;;
-                crtd) ;;
-                -?*)
+                crtd)
+                    ;;
+                *)
                     printf $COLOR_R'WARN: --cluster-mode provided with unknown option %s\n'$COLOR_RESET "$2" >&2
                     break
                     ;;
