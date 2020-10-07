@@ -445,7 +445,8 @@ while :; do
         --cluster-peers)
             # Test whether jq is installed and install if not
             while ! type jq > /dev/null; do
-                printf $COLOR_R'WARN: jq is not installed on your system. Trying to install, root permissions may be required...\n'$COLOR_RESET >&2
+                printf $COLOR_R'WARN: jq is not installed on your system.'$COLOR_RESET >&2
+                printf 'Trying to install the jq, root permissions may be required...\n'
                 sudo apt install jq
                 break;
             done
