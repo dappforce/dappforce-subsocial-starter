@@ -189,11 +189,16 @@ If you want to add, remove or entirely override trusted peers (ones that are abl
 ./start.sh --only-ipfs --cluster-peers override '["*"]'
 ```
 
-*Peer URI* is something like `/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V`
+**Note:** that when you override, you should provide JSON like array of peers.
 
-Note that when you override, you should provide JSON like array of peers.
+**Note:** all - add, remove and override should have every Peer URI wrapped by double quotes.
 
-All: add, remove and override should have every Peer URI wrapped by double quotes.
+You can get *Peer URI* (e.g `/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V`) using `--cluster-id` option:
+
+```
+./start.sh --cluster-id
+```
+
 
 ## Advanced
 
