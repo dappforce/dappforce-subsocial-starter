@@ -32,9 +32,9 @@ export SUBSTRATE_NODE_EXTRA_OPTS=""
 export OFFCHAIN_CORS="http://localhost"
 
 # Version variables
-export POSTGRES_VERSION=latest
+export POSTGRES_VERSION=12.4
 export ELASTICSEARCH_VERSION=7.4.1
-export IPFS_CLUSTER_VERSION=latest
+export IPFS_CLUSTER_VERSION=v0.13.0
 export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
 export NODE_VERSION=latest
