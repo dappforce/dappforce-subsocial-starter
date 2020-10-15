@@ -29,7 +29,7 @@ services:
       CLUSTER_CRDT_TRUSTEDPEERS: '' # Initially nobody is trusted
       CLUSTER_RESTAPI_CORSALLOWEDORIGINS: '${OFFCHAIN_URL}'
       CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS: /ip4/0.0.0.0/tcp/9094 # Expose API
-      CLUSTER_MONITORPINGINTERVAL: 2s # Speed up peer discovery
+      CLUSTER_MONITORPINGINTERVAL: 1m # Peer discovery interval
     ports:
       - "9094:9094"
       - "9096:9096"
