@@ -9,7 +9,7 @@ COMPOSE_DIR="${DIR}/compose-files"
 
 # Default props
 export IP=127.0.0.1
-WEBUI_IP=127.0.0.1:80
+export WEBUI_URL=http://$IP
 
 PROJECT_NAME="subsocial"
 FORCEPULL="false"
@@ -135,7 +135,7 @@ while :; do
             SUBSTRATE_RPC_URL='ws://'$IP':9944'
             OFFCHAIN_URL='http://'$IP':3001'
             ELASTIC_URL='http://'$IP':9200'
-            WEBUI_IP=$IP':80'
+            WEBUI_URL='http://'$IP
             APPS_URL='http://'$IP'/bc'
             IPFS_READ_ONLY_NODE_URL='http://'$IP':8080'
             IPFS_NODE_URL='http://'$IP':5001'
@@ -290,12 +290,12 @@ while :; do
             fi
             ;;
 
-        --webui-ip)
-            if [ -z $2 ] || [[ $2 =~ --.* ]] ; then
-                printf $COLOR_R'WARN: --webui-ip must be provided with an IP:PORT argument\n'$COLOR_RESET >&2
+        --webui-url)
+            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
+                printf $COLOR_R'WARN: --webui-url must be provided with an URL argument\n'$COLOR_RESET >&2
                 break;
             else
-                export WEBUI_IP=$2
+                WEBUI_URL=$2
                 printf $COLOR_Y'Web UI IP set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
@@ -506,11 +506,11 @@ while :; do
 
             if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
                 printf "\nWaiting for Web UI to start...\n"
-                until curl -s ${WEBUI_IP} > /dev/null ; do
+                until curl -s ${WEBUI_URL} > /dev/null ; do
                     sleep 2
                 done
 
-                printf 'Web UI is accessible on '$WEBUI_IP'\n'
+                printf 'Web UI is accessible on '$WEBUI_URL'\n'
             fi
             printf 'Containers are ready.\n'
             break
