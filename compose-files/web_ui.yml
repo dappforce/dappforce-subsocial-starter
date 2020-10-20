@@ -1,5 +1,4 @@
-# docker-compose.yml
-version: "3"
+version: "3.2"
 services:
   web-ui:
     image: dappforce/subsocial-ui:$WEBUI_VERSION
