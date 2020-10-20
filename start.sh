@@ -15,6 +15,8 @@ PROJECT_NAME="subsocial"
 FORCEPULL="false"
 export EXTERNAL_VOLUME=~/subsocial_data
 STOPPING_MODE="none"
+DATA_STATUS_PRUNED="(data pruned)"
+DATA_STATUS_SAVED="(data saved)"
 
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
 export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
@@ -444,16 +446,28 @@ while :; do
         *)
             if [ ${STOPPING_MODE} != "none" ]; then
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
+                data_status=$DATA_STATUS_SAVED
 
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
                 if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
-                    eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down -v
+                    printf $COLOR_R'"purge-volumes" will clean all data produced by the project.\n'
+                    printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read answer_to_purge
+                    if [[ $answer_to_purge == "Y" ]]; then
+                        echo $COMPOSE_FILES
+                        eval docker-compose "$COMPOSE_FILES" down -v
 
-                    printf $COLOR_Y'Cleaning IPFS data and Offchain state, root may be required.\n'$COLOR_RESET
-                    sudo rm -rf $EXTERNAL_VOLUME || true
+                        printf $COLOR_Y'Cleaning IPFS data and Offchain state, root may be required.\n'$COLOR_RESET
+                        sudo rm -rf $EXTERNAL_VOLUME || true
+                        data_status=$DATA_STATUS_PRUNED
+                    fi
                 fi
 
-                printf "\nProject pruned successfully\n"
+                printf "\nProject stopped successfully $data_status\n"
+                if [[ $data_status == $DATA_STATUS_SAVED ]]; then
+                    printf $COLOR_RESET'\nThere are such volumes in the system:\n'
+                    eval docker volume ls
+                    [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '$EXTERNAL_VOLUME'\n"
+                fi
                 break;
             fi
 
