@@ -88,9 +88,9 @@ COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
 COMPOSE_FILES+=${SELECTED_SUBSTRATE}
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
+# COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
+# COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
+# COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
 
 # colors
 COLOR_R="\033[0;31m"    # red
@@ -169,8 +169,10 @@ while :; do
 
         # Delete project's docker containers
         --stop)
-            if [[ $2 == "purge-volumes" ]] ; then STOPPING_MODE=$2
-            else STOPPING_MODE="default"
+            if [[ $2 == "purge-volumes" ]] ; then
+              STOPPING_MODE=$2
+            else
+              STOPPING_MODE="default"
             fi
             ;;
 
