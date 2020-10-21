@@ -296,7 +296,7 @@ while :; do
 
         --webui-url)
             if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
-                printf $COLOR_R'WARN: --webui-url must be provided with an URL argument\n'$COLOR_RESET >&2
+                printf $COLOR_R'WARN: --webui-url must be provided with a URL string\n'$COLOR_RESET >&2
                 break;
             else
                 WEBUI_URL=$2
@@ -452,7 +452,7 @@ while :; do
 
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
                 if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
-                    printf $COLOR_R'"purge-volumes" will clean all data produced by the project.\n'
+                    printf $COLOR_R'"purge-volumes" will clean all data produced by the project (Postgres, ElasticSearch, etc).\n'
                     printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read answer_to_purge
                     if [[ $answer_to_purge == "Y" ]]; then
                         echo $COMPOSE_FILES
@@ -466,7 +466,7 @@ while :; do
 
                 printf "\nProject stopped successfully $data_status\n"
                 if [[ $data_status == $DATA_STATUS_SAVED ]]; then
-                    printf $COLOR_RESET'\nThere are such volumes in the system:\n'
+                    printf $COLOR_RESET'\nNon empty Docker volumes:\n'
                     eval docker volume ls
                     [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '$EXTERNAL_VOLUME'\n"
                 fi
@@ -526,7 +526,7 @@ while :; do
                     sleep 2
                 done
 
-                printf 'Web UI is accessible on '$WEBUI_URL'\n'
+                printf 'Web UI is available at '$WEBUI_URL'\n'
             fi
             printf 'Containers are ready.\n'
             break
