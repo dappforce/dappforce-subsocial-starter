@@ -1,5 +1,4 @@
-# docker-compose.yml
-version: "3"
+version: "3.2"
 services:
   apps:
     image: dappforce/subsocial-apps:$APPS_VERSION

@@ -9,12 +9,14 @@ COMPOSE_DIR="${DIR}/compose-files"
 
 # Default props
 export IP=127.0.0.1
-WEBUI_IP=127.0.0.1:80
+export WEBUI_URL=http://$IP
 
 PROJECT_NAME="subsocial"
 FORCEPULL="false"
 export EXTERNAL_VOLUME=~/subsocial_data
 STOPPING_MODE="none"
+DATA_STATUS_PRUNED="(data pruned)"
+DATA_STATUS_SAVED="(data saved)"
 
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
 export CLUSTER_SECRET=""
@@ -137,7 +139,7 @@ while :; do
             SUBSTRATE_RPC_URL='ws://'$IP':9944'
             OFFCHAIN_URL='http://'$IP':3001'
             ELASTIC_URL='http://'$IP':9200'
-            WEBUI_IP=$IP':80'
+            WEBUI_URL='http://'$IP
             APPS_URL='http://'$IP'/bc'
             IPFS_READ_ONLY_NODE_URL='http://'$IP':8080'
             IPFS_NODE_URL='http://'$IP':5001'
@@ -169,8 +171,10 @@ while :; do
 
         # Delete project's docker containers
         --stop)
-            if [[ $2 == "purge-volumes" ]] ; then STOPPING_MODE=$2
-            else STOPPING_MODE="default"
+            if [[ $2 == "purge-volumes" ]] ; then
+              STOPPING_MODE=$2
+            else
+              STOPPING_MODE="default"
             fi
             ;;
 
@@ -292,12 +296,12 @@ while :; do
             fi
             ;;
 
-        --webui-ip)
-            if [ -z $2 ] || [[ $2 =~ --.* ]] ; then
-                printf $COLOR_R'WARN: --webui-ip must be provided with an IP:PORT argument\n'$COLOR_RESET >&2
+        --webui-url)
+            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
+                printf $COLOR_R'WARN: --webui-url must be provided with a URL string\n'$COLOR_RESET >&2
                 break;
             else
-                export WEBUI_IP=$2
+                WEBUI_URL=$2
                 printf $COLOR_Y'Web UI IP set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
@@ -522,16 +526,28 @@ while :; do
         *)
             if [ ${STOPPING_MODE} != "none" ]; then
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
+                data_status=$DATA_STATUS_SAVED
 
                 eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
                 if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
-                    eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down -v
+                    printf $COLOR_R'"purge-volumes" will clean all data produced by the project (Postgres, ElasticSearch, etc).\n'
+                    printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read answer_to_purge
+                    if [[ $answer_to_purge == "Y" ]]; then
+                        echo $COMPOSE_FILES
+                        eval docker-compose "$COMPOSE_FILES" down -v
 
-                    printf $COLOR_Y'Cleaning IPFS data and Offchain state, root may be required.\n'$COLOR_RESET
-                    sudo rm -rf $EXTERNAL_VOLUME || true
+                        printf $COLOR_Y'Cleaning IPFS data and Offchain state, root may be required.\n'$COLOR_RESET
+                        sudo rm -rf $EXTERNAL_VOLUME || true
+                        data_status=$DATA_STATUS_PRUNED
+                    fi
                 fi
 
-                printf "\nProject pruned successfully\n"
+                printf "\nProject stopped successfully $data_status\n"
+                if [[ $data_status == $DATA_STATUS_SAVED ]]; then
+                    printf $COLOR_RESET'\nNon empty Docker volumes:\n'
+                    eval docker volume ls
+                    [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '$EXTERNAL_VOLUME'\n"
+                fi
                 break;
             fi
 
@@ -581,11 +597,11 @@ while :; do
 
             if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
                 printf "\nWaiting for Web UI to start...\n"
-                until curl -s ${WEBUI_IP} > /dev/null ; do
+                until curl -s ${WEBUI_URL} > /dev/null ; do
                     sleep 2
                 done
 
-                printf 'Web UI is accessible on '$WEBUI_IP'\n'
+                printf 'Web UI is available at '$WEBUI_URL'\n'
             fi
             printf 'Containers are ready.\n'
             break
