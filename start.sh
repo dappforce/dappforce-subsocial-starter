@@ -17,11 +17,13 @@ export EXTERNAL_VOLUME=~/subsocial_data
 STOPPING_MODE="none"
 
 # Generated new IPFS Cluster secret in case the ipfs-data was cleaned
-export CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
+export CLUSTER_SECRET=""
 
 # Other IPFS Cluster variables
+export CLUSTER_PEERNAME="Subsocial Cluster"
 export CLUSTER_BOOTSTRAP=""
 export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
+export IPFS_CLUSTER_CONSENSUS="crdt"
 
 # Substrate related variables
 export SUBSTRATE_NODE_EXTRA_OPTS=""
@@ -30,9 +32,9 @@ export SUBSTRATE_NODE_EXTRA_OPTS=""
 export OFFCHAIN_CORS="http://localhost"
 
 # Version variables
-export POSTGRES_VERSION=latest
+export POSTGRES_VERSION=12.4
 export ELASTICSEARCH_VERSION=7.4.1
-export IPFS_CLUSTER_VERSION=latest
+export IPFS_CLUSTER_VERSION=v0.13.0
 export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
 export NODE_VERSION=latest
@@ -332,12 +334,14 @@ while :; do
                     IPFS_READ_ONLY_NODE_URL=http://$3:8080
                     IPFS_CLUSTER_URL=http://$3:9094
                     ;;
-                -?*)
-                    printf $COLOR_R'ERRORR: --ipfs-ip must be provided with (readonly/cluster/all)\n'$COLOR_RESET >&2
+                *)
+                    printf $COLOR_R'ERROR: --ipfs-ip must be provided with (readonly/cluster/all)\n'$COLOR_RESET >&2
                     break;
                     ;;
             esac
+
             printf $COLOR_Y'IPFS %s IP is set to %s\n\n'$COLOR_RESET "$2" "$3"
+            shift 2
             ;;
 
         #################################################
@@ -373,7 +377,7 @@ while :; do
                     validator)
                         SELECTED_SUBSTRATE=${SUBSTRATE_VALIDATOR_COMPOSE}
                         ;;
-                    -?*)
+                    *)
                         printf $COLOR_R'WARN: --substrate-mode provided with unknown option %s\n'$COLOR_RESET "$2" >&2
                         break
                         ;;
@@ -387,8 +391,8 @@ while :; do
         # Extra options for IPFS cluster
         #################################################
 
-        --cluster-peers)
-            docker exec subsocial-ipfs-cluster ipfs-cluster-ctl peers ls
+        --cluster-id)
+            docker exec subsocial-ipfs-cluster ipfs-cluster-ctl id
             break;
             ;;
 
@@ -402,15 +406,89 @@ while :; do
             fi
             ;;
 
-        --cluster-identity-path)
+        --cluster-mode)
+            case $2 in
+                raft)
+                    CLUSTER_SECRET=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
+                    ;;
+                crtd)
+                    ;;
+                *)
+                    printf $COLOR_R'WARN: --cluster-mode provided with unknown option %s\n'$COLOR_RESET "$2" >&2
+                    break
+                    ;;
+            esac
+
+            IPFS_CLUSTER_CONSENSUS=$2
+            shift
+            ;;
+
+        --cluster-secret)
             if [[ -z $2 ]]; then
-                printf $COLOR_R'WARN: --cluster-identity-path must be provided with path string\n'$COLOR_RESET >&2
+                printf $COLOR_R'WARN: --cluster-secret must be provided with a secret string\n'$COLOR_RESET >&2
                 break;
             else
-                mkdir -p $CLUSTER_CONFIG_FOLDER
-                cp $2 $CLUSTER_CONFIG_FOLDER
+                CLUSTER_SECRET=$2
+            fi
+            ;;
+
+        --cluster-peername)
+            if [[ -z $2 ]]; then
+                printf $COLOR_R'WARN: --cluster-peername must be provided with a peer name string\n'$COLOR_RESET >&2
+                break;
+            else
+                CLUSTER_PEERNAME=$2
                 shift
             fi
+            ;;
+
+        --cluster-peers)
+            # Test whether jq is installed and install if not
+            while ! type jq > /dev/null; do
+                printf $COLOR_R'WARN: jq is not installed on your system.'$COLOR_RESET >&2
+                printf 'Trying to install the jq, root permissions may be required...\n'
+                sudo apt install jq
+                break;
+            done
+
+            if [ -z '$2' ] || [ -z '$3' ]; then
+                printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) and URI(s) JSON array\n' >&2
+                printf "Example of rewriting peers: "$COLOR_RESET"--cluster-peers override '[\"*\"]'\n" >&2
+                printf $COLOR_R"Example of adding a peer: "$COLOR_RESET"--cluster-peers add '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
+                printf $COLOR_R"Example of removing a peer: "$COLOR_RESET"--cluster-peers remove '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
+                printf $COLOR_R"\nWhere "$COLOR_RESET"\"Peer URI\""$COLOR_R" looks like: "$COLOR_RESET"/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V\n" >&2
+                break;
+            fi
+
+            _cluster_config_path=$CLUSTER_CONFIG_FOLDER/service.json
+            if [[ ! -f $_cluster_config_path ]]; then
+                printf $COLOR_R'ERROR: IPFS Cluster is not yet started.\n' >&2
+                prtinf '>> Start IPFS Cluster to create config JSON\n'$COLOR_RESET >&2
+                break;
+            fi
+
+            case $2 in
+                "add")
+                    _new_trusted_peers_query=".consensus.$IPFS_CLUSTER_CONSENSUS.trusted_peers += [$3]"
+                    ;;
+                "remove")
+                    _new_trusted_peers_query=".consensus.$IPFS_CLUSTER_CONSENSUS.trusted_peers -= [$3]"
+                    ;;
+                "override")
+                    _new_trusted_peers_query=".consensus.$IPFS_CLUSTER_CONSENSUS.trusted_peers = $3"
+                    ;;
+                *)
+                    printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) only\n'$COLOR_RESET >&2
+                    break;  
+                    ;;
+            esac
+
+            _temp_file_name=tmp.$$.json
+            jq "$_new_trusted_peers_query" $_cluster_config_path > $_temp_file_name
+            mv $_temp_file_name $_cluster_config_path
+
+            printf $COLOR_Y'%s (%s) on IPFS Cluster trusted peers\n\n'$COLOR_RESET "$3" "$2"
+            shift 2
             ;;
 
         #################################################
@@ -497,9 +575,6 @@ while :; do
                 if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
                     write_boostrap_peers $CLUSTER_BOOTSTRAP
                     echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
-                    # eval cat $CLUSTER_CONFIG_FOLDER/peerstore
-                    # docker commit --change \
-                        # "CMD \"daemon --bootstrap "$CLUSTER_BOOTSTRAP"\"]" $CONT_IPFS_CLUSTER
                     docker restart ${CONT_IPFS_CLUSTER} > /dev/null
                 fi
             fi

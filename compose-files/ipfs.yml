@@ -1,7 +1,5 @@
 version: "3"
 services:
-  ## IPFS Cluster #################################
-  #################################################
 
   ipfs-node:
     image: ipfs/go-ipfs:$IPFS_NODE_VERSION
@@ -23,16 +21,15 @@ services:
     restart: on-failure
     depends_on:
       - ipfs-node
-    # command: daemon
-      # --bootstrap $CLUSTER_BOOTSTRAP
     environment:
-      CLUSTER_PEERNAME: "Subsocial Cluster"
+      CLUSTER_PEERNAME: ${CLUSTER_PEERNAME}
+      IPFS_CLUSTER_CONSENSUS: ${IPFS_CLUSTER_CONSENSUS}
       CLUSTER_SECRET: ${CLUSTER_SECRET} # From shell variable if set
       CLUSTER_IPFSHTTP_NODEMULTIADDRESS: /dns4/ipfs-node/tcp/5001
-      CLUSTER_CRDT_TRUSTEDPEERS: '*' # Trust all peers in Cluster (initially)
+      CLUSTER_CRDT_TRUSTEDPEERS: '' # Trust none by default
       CLUSTER_RESTAPI_CORSALLOWEDORIGINS: '${OFFCHAIN_URL}'
       CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS: /ip4/0.0.0.0/tcp/9094 # Expose API
-      CLUSTER_MONITORPINGINTERVAL: 2s # Speed up peer discovery
+      CLUSTER_MONITORPINGINTERVAL: 1m # Peer discovery interval
     ports:
       - "9094:9094"
       - "9096:9096"
@@ -41,6 +38,3 @@ services:
     networks:
       backend:
         ipv4_address: $IPFS_CLUSTER_IP
-
-#################################################
-#################################################

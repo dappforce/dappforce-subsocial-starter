@@ -163,9 +163,42 @@ We use `--only-ipfs` to run IPFS only:
 
 `--offchain-url` is mandatory here, because of CORS are used for IPFS cluster access.
 
-⚠️ ***Experimentally*** ⚠️ you can specify `identity.json` and initial peers (bootnodes)
-with `--cluster-identity-path` and `--cluster-bootstrap` to be able to connect to Subsocial
-as a cluster peer **(this may not work yet)**.
+You can specify initial IPFS cluster bootnodes in order to connect to Subsocial as a cluster peer. Example:
+
+```
+./start.sh --only-ipfs --cluster-bootstrap "/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWRRyJpS847KJQCEXqWC3AFjaweTBtVvA8DmLz9RxA7yQW"
+```
+
+If you want to add, remove or entirely override trusted peers (ones that are able to pin/unpin content on IPFS), you might want to use `--cluster-peers` option:
+
+**To add a peer:**
+
+```
+./start.sh --only-ipfs --cluster-peers add '"PeerURI-1", "PeerURI-2"'
+```
+
+**To remove a peer:**
+
+```
+./start.sh --only-ipfs --cluster-peers remove '"PeerURI-1", "PeerURI-2"'
+```
+
+**To entirely override trusted peers:**
+
+```
+./start.sh --only-ipfs --cluster-peers override '["*"]'
+```
+
+**NOTE:** that when you override, you should provide JSON like array of peers.
+
+**NOTE:** all - add, remove and override should have every Peer URI wrapped by double quotes.
+
+To get *Peer URI* (e.g `/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V`) use `--cluster-id` option:
+
+```
+./start.sh --cluster-id
+```
+
 
 ## Advanced
 
@@ -199,9 +232,12 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--ipfs-ip <readonly/cluster/all>` | Specify custom IPFS IP for IPFS Gateway (readonly), IPFS Cluster or both. |
 | `--substrate-extra-opts`           | Start Substrate node with additional Substrate CLI options. Example: `./start.sh --substrate-extra-opts "--dev --name my-subsocial-node"` |
 | `--substrate-mode <rpc/validator>` | Start Substrate in a specified mode (`rpc` or `validator`). By default (when isn't specified) starts both nodes RPC and Authority (validator). |
-| `--cluster-peers`                  | Shows IPFS Cluster peers if it's running.                    |
+| `--cluster-id`                     | Show IPFS Cluster peers if it's running. |
+| `--cluster-peers <add/remove/override>`| Add, remove or override trusted peers to/from IPFS Cluster. Example: `./start.sh --cluster-peers add '["*"]'` |
 | `--cluster-bootstrap "list"`       | Specify initial IPFS Cluster peers as if it's done via `ipfs-cluster-service` CLI. Example: `./start.sh --cluster-bootstrap "/ip4/<FIRST_IP>/tcp/9066/<FIRST_IDENTITY_ID>, /ip4/<SECOND_IP>/tcp/9066/<SECOND_IDENTITY_ID>"` |
-| `--cluster-identity-path "path"`   | Specify IPFS Cluster `identity.json` to copy to initial cluster config. |
+| `--cluster-mode <crdt/raft>`       | Specify IPFS Cluster consensus mode, which can be `crdt` or `raft`. |
+| `--cluster-secret`                 | Specify IPFS Cluster secret if consensus is RAFT. Cluster secret must be equal across all cluster nodes. |
+| `--cluster-peername`               | Specify IPFS Cluster peer name. Each Cluster node must have its own unique peer name. |
 | `--offchain-cors`                  | Specify Offchain CORS (from what URL or IP it will be accessible). Example: `./start.sh --only-offchain --offchain-cors "https://mydomain.com"` |
 
 ### Nginx proxy for web apps
