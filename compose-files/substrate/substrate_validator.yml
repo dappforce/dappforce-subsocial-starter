@@ -20,3 +20,6 @@ services:
     networks:
       backend:
         ipv4_address: $SUBSTRATE_VALIDATOR_IP
+
+volumes:
+  node_validator_data:

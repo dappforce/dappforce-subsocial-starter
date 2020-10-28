@@ -93,7 +93,7 @@ SUBSTRATE_VALIDATOR_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_validator.ym
 SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
 
 COMPOSE_FILES=""
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
@@ -227,7 +227,7 @@ while :; do
 
         --only-offchain)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
@@ -236,35 +236,35 @@ while :; do
 
         --only-substrate)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=${SELECTED_SUBSTRATE}
             printf $COLOR_Y'Starting only Substrate...\n\n'$COLOR_RESET
             ;;
 
         --only-webui)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
             printf $COLOR_Y'Starting only Web UI...\n\n'$COLOR_RESET
             ;;
 
         --only-apps)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/apps.yml"
             printf $COLOR_Y'Starting only JS Apps...\n\n'$COLOR_RESET
             ;;
 
         --only-proxy)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
             printf $COLOR_Y'Starting only Nginx proxy...\n\n'$COLOR_RESET
             ;;
 
         --only-ipfs)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
             printf $COLOR_Y'Starting only IPFS cluster...\n\n'$COLOR_RESET
             ;;
@@ -534,39 +534,38 @@ while :; do
             ;;
 
         *)
+            mkdir ${EXTERNAL_VOLUME} 2> /dev/null || true
             if [ ${STOPPING_MODE} != "none" ]; then
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
                 data_status=$DATA_STATUS_SAVED
 
-                eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" down
+                docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES down
                 if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
                     printf $COLOR_R'"purge-volumes" will clean all data produced by the project (Postgres, ElasticSearch, etc).\n'
                     printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read answer_to_purge
                     if [[ $answer_to_purge == "Y" ]]; then
-                        echo $COMPOSE_FILES
-                        eval docker-compose "$COMPOSE_FILES" down -v
+                        docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES down -v || true
 
-                        printf $COLOR_Y'Cleaning IPFS data and Offchain state, root may be required.\n'$COLOR_RESET
-                        sudo rm -rf $EXTERNAL_VOLUME || true
+                        printf $COLOR_Y'Cleaning IPFS data, Offchain state and ES passwords. Root may be required.\n'$COLOR_RESET
+                        [[ -d $EXTERNAL_VOLUME ]] && sudo rm -rf $EXTERNAL_VOLUME || true
+                        [[ -f $ELASTIC_PASSWORDS_PATH ]] && rm $ELASTIC_PASSWORDS_PATH || true
                         data_status=$DATA_STATUS_PRUNED
                     fi
                 fi
 
                 printf "\nProject stopped successfully $data_status\n"
-                if [[ $data_status == $DATA_STATUS_SAVED ]]; then
-                    printf $COLOR_RESET'\nNon empty Docker volumes:\n'
-                    eval docker volume ls
-                    [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '$EXTERNAL_VOLUME'\n"
-                fi
-                break;
+                printf $COLOR_RESET'\nNon empty Docker volumes:\n'
+                docker volume ls
+                [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '$EXTERNAL_VOLUME'\n"
+                break
             fi
 
             printf $COLOR_Y'Starting Subsocial...\n\n'$COLOR_RESET
             
             # Cut out subsocial-proxy from images to be pulled
             PULL_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
-            [ ${FORCEPULL} = "true" ] && eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" pull
-            eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
+            [ ${FORCEPULL} = "true" ] && docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES pull
+            docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES up -d
 
             [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
 
