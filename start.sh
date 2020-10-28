@@ -132,6 +132,35 @@ write_boostrap_peers(){
     done
 }
 
+wait_for_ipfs_node(){
+    until curl -s ${IPFS_READ_ONLY_NODE_URL}/version > /dev/null; do
+        sleep 1
+    done
+}
+
+create_subsocial_elastic_users(){
+    local password
+    local elastic_password=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi 'elastic' | cut -d "=" -f2- | tr -d '[:space:]')
+    
+    curl -XPOST -u elastic:$elastic_password 'localhost:9200/_security/role/index_subsocial' \
+    -H "Content-Type: application/json" --data-binary "@${DIR}/elastic/add_index_role.json" > /dev/null
+
+    curl -XPOST -u elastic:$elastic_password 'localhost:9200/_security/role/read_subsocial' \
+    -H "Content-Type: application/json" --data-binary "@${DIR}/elastic/add_read_role.json" > /dev/null
+
+    password=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
+    curl -XPOST -u elastic:$elastic_password 'localhost:9200/_security/user/offchain' \
+    -H "Content-Type: application/json" -d '{ "password": "'$password'", "roles" : [ "index_subsocial" ] }' > /dev/null \
+    && echo "PASSWORD offchain = $password" >> $ELASTIC_PASSWORDS_PATH \
+    && ELASTIC_OFFCHAIN_PASSWORD=$password
+
+    password=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
+    curl -XPOST -u elastic:$elastic_password 'localhost:9200/_security/user/readonly' \
+    -H "Content-Type: application/json" -d '{ "password": "'$password'", "roles" : [ "read_subsocial" ] }' > /dev/null \
+    && echo "PASSWORD readonly = $password" >> $ELASTIC_PASSWORDS_PATH \
+    && ELASTIC_READONLY_PASSWORD=$password
+}
+
 while :; do
     case $1 in
 
@@ -232,6 +261,11 @@ while :; do
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
             printf $COLOR_Y'Starting only Offchain...\n\n'$COLOR_RESET
+        --only-elastic)
+            COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
+            printf $COLOR_Y'Starting Elasticsearch only...\n\n'$COLOR_RESET
             ;;
 
         --only-substrate)
@@ -578,12 +612,25 @@ while :; do
                     sleep 1
                 done
 
+                if [[ ! -f $ELASTIC_PASSWORDS_PATH ]]; then
+                    printf "Generating passwords for ElasticSearch...\n"
+                    docker exec -t subsocial-elasticsearch bin/elasticsearch-setup-passwords auto -b \
+                    | grep -wi 'password.*=' > $ELASTIC_PASSWORDS_PATH
+                    printf "ES passwords are successfully saved to ${ELASTIC_PASSWORDS_PATH}\n\n"
+
+                    create_subsocial_elastic_users
+                fi
+
                 # Offchain itself
                 [[ $COMPOSE_FILES =~ 'offchain' ]] && docker container start ${CONT_OFFCHAIN} > /dev/null
             fi
 
             [[ $COMPOSE_FILES =~ 'offchain' ]] && printf 'Offchain successfully started\n\n'
-                printf "Setting up IPFS\n"
+
+            if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
+                printf "Wait until IPFS node starts\n"
+                wait_for_ipfs_node
+
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
                         API.HTTPHeaders.Access-Control-Allow-Origin \
@@ -592,23 +639,20 @@ while :; do
                 ); do
                     sleep 1
                 done
+                wait_for_ipfs_node
 
-                until curl -s ${IPFS_READ_ONLY_NODE_URL}/version > /dev/null ; do
-                    sleep 1
-                done
-
-                docker restart ${CONT_IPFS_CLUSTER} > /dev/null
+                printf "Setting up IPFS cluster...\n"
                 if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
                     write_boostrap_peers $CLUSTER_BOOTSTRAP
                     echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
-                    docker restart ${CONT_IPFS_CLUSTER} > /dev/null
                 fi
+                docker restart ${CONT_IPFS_CLUSTER} > /dev/null
             fi
 
-            if [[ $COMPOSE_FILES =~ 'web_ui' ]] ; then
+            if [[ $COMPOSE_FILES =~ 'web_ui' ]]; then
                 printf "\nWaiting for Web UI to start...\n"
-                until curl -s ${WEBUI_URL} > /dev/null ; do
-                    sleep 2
+                until curl -s ${WEBUI_URL} > /dev/null; do
+                    sleep 1
                 done
 
                 printf 'Web UI is available at '$WEBUI_URL'\n'
