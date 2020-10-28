@@ -14,31 +14,6 @@ services:
       backend:
         ipv4_address: $POSTGRES_IP
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTICSEARCH_VERSION
-    container_name: $CONT_ELASTICSEARCH
-    restart: on-failure
-    environment:
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-      MAX_MAP_COUNT: "64000"
-      discovery.type: "single-node"
-      cluster.name: "subsocial-cluster"
-      node.name: "subsocial-node"
-      network.host: "$ELASTICSEARCH_IP"
-      http.port: "9200"
-      http.cors.enabled: "true"
-      http.cors.allow-credentials: "true"
-      http.cors.allow-origin: "$WEBUI_URL,http://localhost:1358"
-      http.cors.allow-methods: "GET"
-      http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization,Access-Control-Allow-Headers,Accept"
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    networks:
-      backend:
-        ipv4_address: $ELASTICSEARCH_IP
-
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
     container_name: $CONT_OFFCHAIN

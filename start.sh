@@ -27,6 +27,13 @@ export CLUSTER_BOOTSTRAP=""
 export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
 export IPFS_CLUSTER_CONSENSUS="crdt"
 
+# Elasticsearch related variables
+ELASTIC_PASSWORDS_PATH=${EXTERNAL_VOLUME}/es_passwords
+export ES_READONLY_USER="readonly"
+export ES_READONLY_PASSWORD=""
+export ES_OFFCHAIN_USER="offchain"
+export ES_OFFCHAIN_PASSWORD=""
+
 # Substrate related variables
 export SUBSTRATE_NODE_EXTRA_OPTS=""
 
@@ -88,6 +95,7 @@ SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
+COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
 COMPOSE_FILES+=${SELECTED_SUBSTRATE}
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
@@ -184,6 +192,7 @@ while :; do
 
         --no-offchain)
             COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/offchain.yml/}"
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/elastic\/compose.yml/}"
             printf $COLOR_Y'Starting without Offchain...\n\n'$COLOR_RESET
             ;;
 
@@ -220,6 +229,7 @@ while :; do
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
             printf $COLOR_Y'Starting only Offchain...\n\n'$COLOR_RESET
             ;;
@@ -558,21 +568,22 @@ while :; do
             [ ${FORCEPULL} = "true" ] && eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" pull
             eval docker-compose --project-name=$PROJECT_NAME "$COMPOSE_FILES" up -d
 
-            if [[ $COMPOSE_FILES =~ 'offchain' ]] ; then
+            [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
+
+            if [[ $COMPOSE_FILES =~ 'elasticsearch' ]]; then
+                [[ $COMPOSE_FILES =~ 'offchain' ]] && docker container stop ${CONT_OFFCHAIN} > /dev/null
 
                 # Elasticsearch
-                printf "\nHold on, starting Offchain:\nSetting up ElasticSearch...\n"
-                docker container stop ${CONT_OFFCHAIN} > /dev/null
-                until curl -s ${ELASTIC_URL} > /dev/null ; do
-                    sleep 2
+                printf "Waiting until Elasticsearch starts...\n"
+                until curl -s ${ELASTIC_URL} > /dev/null; do
+                    sleep 1
                 done
 
                 # Offchain itself
-                docker container start ${CONT_OFFCHAIN} > /dev/null
-                printf 'Offchain successfully started\n'
+                [[ $COMPOSE_FILES =~ 'offchain' ]] && docker container start ${CONT_OFFCHAIN} > /dev/null
             fi
 
-            if [[ $COMPOSE_FILES =~ 'ipfs' ]] ; then
+            [[ $COMPOSE_FILES =~ 'offchain' ]] && printf 'Offchain successfully started\n\n'
                 printf "Setting up IPFS\n"
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
