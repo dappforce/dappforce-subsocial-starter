@@ -111,8 +111,8 @@ COLOR_RESET="\033[00m"
 
 parse_substrate_extra_opts(){
     while :; do
-        if [ -z $1 ] ; then
-            break;
+        if [ -z $1 ]; then
+            break
         else
             SUBSTRATE_NODE_EXTRA_OPTS+=' '$1
             shift
@@ -123,8 +123,8 @@ parse_substrate_extra_opts(){
 write_boostrap_peers(){
     printf "\nIPFS Cluster peers:\n"
     while :; do
-        if [ -z $1 ] ; then
-            break;
+        if [ -z $1 ]; then
+            break
         else
             printf $1'\n'
             shift
@@ -164,9 +164,9 @@ while :; do
 
         # Specify docker images tag
         --tag)
-            if [ -z $2 ] || [[ $2 == *'--'* ]] ; then
+            if [ -z $2 ] || [[ $2 == *'--'* ]]; then
                 printf $COLOR_R'WARN: --tag must be provided with a tag name argument\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 export OFFCHAIN_VERSION=$2
                 export NODE_VERSION=$2
@@ -179,7 +179,7 @@ while :; do
 
         # Delete project's docker containers
         --stop)
-            if [[ $2 == "purge-volumes" ]] ; then
+            if [[ $2 == "purge-volumes" ]]; then
               STOPPING_MODE=$2
             else
               STOPPING_MODE="default"
@@ -274,9 +274,9 @@ while :; do
         #################################################
 
         --substrate-url)
-            if [ -z $2 ] || [[ $2 =~ --.* ]] || ! [[ $2 =~ wss?://.*:?.* ]] ; then
+            if [ -z $2 ] || [[ $2 =~ --.* ]] || ! [[ $2 =~ wss?://.*:?.* ]]; then
                 printf $COLOR_R'WARN: --substrate-url must be provided with an ws(s)://IP:PORT argument\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 export SUBSTRATE_RPC_URL=$2
                 printf $COLOR_Y'Substrate URL set to %s\n\n'$COLOR_RESET "$SUBSTRATE_RPC_URL"
@@ -285,9 +285,9 @@ while :; do
             ;;
 
         --offchain-url)
-            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
+            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]]; then
                 printf $COLOR_R'WARN: --offchain-url must be provided with URL argument\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 export OFFCHAIN_URL=$2
                 printf $COLOR_Y'Offchain URL set to %s\n\n'$COLOR_RESET "$2"
@@ -296,9 +296,9 @@ while :; do
             ;;
 
         --elastic-url)
-            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
+            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]]; then
                 printf $COLOR_R'WARN: --elastic-url must be provided with an URL argument\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 export ELASTIC_URL=$2
                 printf $COLOR_Y'Elasticsearch URL set to %s\n\n'$COLOR_RESET "$2"
@@ -307,9 +307,9 @@ while :; do
             ;;
 
         --webui-url)
-            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
+            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]]; then
                 printf $COLOR_R'WARN: --webui-url must be provided with a URL string\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 WEBUI_URL=$2
                 printf $COLOR_Y'Web UI IP set to %s\n\n'$COLOR_RESET "$2"
@@ -318,9 +318,9 @@ while :; do
             ;;
 
         --apps-url)
-            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]] ; then
+            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]]; then
                 printf $COLOR_R'WARN: --apps-url must be provided with an URL argument\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 export APPS_URL=$2
                 printf $COLOR_Y'JS Apps URL set to %s\n\n'$COLOR_RESET "$2"
@@ -333,7 +333,7 @@ while :; do
             # TODO: add https support
             if [ -z $2 ] || [ -z $3 ]; then
                 printf $COLOR_R'ERROR: --ipfs-ip must be provided with (node/cluster/all) and IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
-                break;
+                break
             fi
             case $2 in
                 "node")
@@ -350,7 +350,7 @@ while :; do
                     ;;
                 *)
                     printf $COLOR_R'ERROR: --ipfs-ip must be provided with (readonly/cluster/all)\n'$COLOR_RESET >&2
-                    break;
+                    break
                     ;;
             esac
 
@@ -363,12 +363,12 @@ while :; do
         #################################################
 
         --substrate-extra-opts)
-            if [[ -z $2 ]] ; then
+            if [[ -z $2 ]]; then
                 printf $COLOR_R'WARN: --substrate-extra-opts must be provided with arguments string\n'$COLOR_RESET >&2
-                break;
+                break
             # elif [[ $2 =~ ^\"*\" ]]; then
             #     printf 'Usage example: '$COLOR_Y'--substrate-extra-opts "--name node --validator"\n'$COLOR_RESET >&2
-            #     break;
+            #     break
             else
                 parse_substrate_extra_opts $2
                 shift
@@ -376,9 +376,9 @@ while :; do
             ;;
 
         --substrate-mode)
-            if [ -z $2 ] ; then
+            if [ -z $2 ]; then
                 printf $COLOR_R'USAGE: --substrate-mode (all/rpc/validator)\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 COMPOSE_FILES="${COMPOSE_FILES/${SELECTED_SUBSTRATE}/}"
                 case $2 in
@@ -407,13 +407,13 @@ while :; do
 
         --cluster-id)
             docker exec subsocial-ipfs-cluster ipfs-cluster-ctl id
-            break;
+            break
             ;;
 
         --cluster-bootstrap)
-            if [[ -z $2 ]] ; then
+            if [[ -z $2 ]]; then
                 printf $COLOR_R'WARN: --cluster-bootstrap must be provided with arguments string\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 CLUSTER_BOOTSTRAP=$2
                 shift
@@ -440,7 +440,7 @@ while :; do
         --cluster-secret)
             if [[ -z $2 ]]; then
                 printf $COLOR_R'WARN: --cluster-secret must be provided with a secret string\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 CLUSTER_SECRET=$2
             fi
@@ -449,7 +449,7 @@ while :; do
         --cluster-peername)
             if [[ -z $2 ]]; then
                 printf $COLOR_R'WARN: --cluster-peername must be provided with a peer name string\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 CLUSTER_PEERNAME=$2
                 shift
@@ -462,7 +462,7 @@ while :; do
                 printf $COLOR_R'WARN: jq is not installed on your system.'$COLOR_RESET >&2
                 printf 'Trying to install the jq, root permissions may be required...\n'
                 sudo apt install jq
-                break;
+                break
             done
 
             if [ -z '$2' ] || [ -z '$3' ]; then
@@ -471,14 +471,14 @@ while :; do
                 printf $COLOR_R"Example of adding a peer: "$COLOR_RESET"--cluster-peers add '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
                 printf $COLOR_R"Example of removing a peer: "$COLOR_RESET"--cluster-peers remove '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
                 printf $COLOR_R"\nWhere "$COLOR_RESET"\"Peer URI\""$COLOR_R" looks like: "$COLOR_RESET"/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V\n" >&2
-                break;
+                break
             fi
 
             _cluster_config_path=$CLUSTER_CONFIG_FOLDER/service.json
             if [[ ! -f $_cluster_config_path ]]; then
                 printf $COLOR_R'ERROR: IPFS Cluster is not yet started.\n' >&2
                 prtinf '>> Start IPFS Cluster to create config JSON\n'$COLOR_RESET >&2
-                break;
+                break
             fi
 
             case $2 in
@@ -493,7 +493,7 @@ while :; do
                     ;;
                 *)
                     printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) only\n'$COLOR_RESET >&2
-                    break;  
+                    break  
                     ;;
             esac
 
@@ -513,7 +513,7 @@ while :; do
         --offchain-cors)
             if [[ -z $2 ]]; then
                 printf $COLOR_R'WARN: --offchain-cors must be provided with URL(s) string\n'$COLOR_RESET >&2
-                break;
+                break
             else
                 OFFCHAIN_CORS=$2
                 printf $COLOR_Y'Offchain CORS set to '$2'\n\n'$COLOR_RESET
@@ -614,7 +614,7 @@ while :; do
 
                 printf 'Web UI is available at '$WEBUI_URL'\n'
             fi
-            printf 'Containers are ready.\n'
+            printf '\nContainers are ready.\n'
             break
     esac
     shift
