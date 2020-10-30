@@ -260,7 +260,9 @@ while :; do
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
-            printf $COLOR_Y'Starting only Offchain...\n\n'$COLOR_RESET
+            printf $COLOR_Y'Starting Offchain only...\n\n'$COLOR_RESET
+            ;;
+
         --only-elastic)
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
