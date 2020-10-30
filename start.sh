@@ -142,23 +142,26 @@ create_subsocial_elastic_users(){
     local password
     local elastic_password=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi 'elastic' | cut -d "=" -f2- | tr -d '[:space:]')
     
-    curl -XPOST -u elastic:$elastic_password 'localhost:9200/_security/role/index_subsocial' \
+    curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/role/index_subsocial' \
     -H "Content-Type: application/json" --data-binary "@${DIR}/elastic/add_index_role.json" > /dev/null
 
-    curl -XPOST -u elastic:$elastic_password 'localhost:9200/_security/role/read_subsocial' \
+    curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/role/read_subsocial' \
     -H "Content-Type: application/json" --data-binary "@${DIR}/elastic/add_read_role.json" > /dev/null
 
     password=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
-    curl -XPOST -u elastic:$elastic_password 'localhost:9200/_security/user/offchain' \
+    curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/user/'$ES_OFFCHAIN_USER'' \
     -H "Content-Type: application/json" -d '{ "password": "'$password'", "roles" : [ "index_subsocial" ] }' > /dev/null \
-    && echo "PASSWORD offchain = $password" >> $ELASTIC_PASSWORDS_PATH \
-    && ELASTIC_OFFCHAIN_PASSWORD=$password
+    && echo "PASSWORD offchain = $password" >> $ELASTIC_PASSWORDS_PATH
 
     password=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
-    curl -XPOST -u elastic:$elastic_password 'localhost:9200/_security/user/readonly' \
+    curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/user/'$ES_READONLY_USER'' \
     -H "Content-Type: application/json" -d '{ "password": "'$password'", "roles" : [ "read_subsocial" ] }' > /dev/null \
-    && echo "PASSWORD readonly = $password" >> $ELASTIC_PASSWORDS_PATH \
-    && ELASTIC_READONLY_PASSWORD=$password
+    && echo "PASSWORD readonly = $password" >> $ELASTIC_PASSWORDS_PATH
+}
+
+up_docker_compose(){
+    [[ -z $1 ]] && printf $COLOR_R'FATAL: wrong usage of `up_docker_compose`. Empty parameter $1\n'$COLOR_RESET && exit
+    docker-compose -p $PROJECT_NAME $COMPOSE_FILES $1 $2 $3
 }
 
 while :; do
@@ -600,8 +603,8 @@ while :; do
             
             # Cut out subsocial-proxy from images to be pulled
             PULL_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
-            [ ${FORCEPULL} = "true" ] && docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES pull
-            docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES up -d
+            [ ${FORCEPULL} = "true" ] && up_docker_compose pull
+            up_docker_compose up -d
 
             [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
 
