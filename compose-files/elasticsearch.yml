@@ -14,11 +14,11 @@ services:
       network.host: "$ELASTICSEARCH_IP"
       xpack.security.enabled: "true"
       xpack.security.audit.enabled: "true"
-      # http.port: "9200"
-      # http.cors.enabled: "true"
-      # http.cors.allow-credentials: "true"
-      # http.cors.allow-origin: "$WEBUI_URL,https://dejavu.appbase.io"
-      # http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization,Access-Control-Allow-Headers,Accept"
+      http.port: "9200"
+      http.cors.enabled: "true"
+      http.cors.allow-credentials: "true"
+      http.cors.allow-origin: "$WEBUI_URL,https://dejavu.appbase.io"
+      http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization,Access-Control-Allow-Headers,Accept"
     volumes:
       - es_data:/usr/share/elasticsearch/data
     ports:

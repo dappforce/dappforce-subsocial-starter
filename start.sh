@@ -141,7 +141,7 @@ wait_for_ipfs_node(){
 create_subsocial_elastic_users(){
     local password
     local elastic_password=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi 'elastic' | cut -d "=" -f2- | tr -d '[:space:]')
-    
+
     curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/role/index_subsocial' \
     -H "Content-Type: application/json" --data-binary "@${DIR}/elastic/add_index_role.json" > /dev/null
 
@@ -538,7 +538,7 @@ while :; do
                     ;;
                 *)
                     printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) only\n'$COLOR_RESET >&2
-                    break  
+                    break
                     ;;
             esac
 
@@ -606,7 +606,7 @@ while :; do
             fi
 
             printf $COLOR_Y'Starting Subsocial...\n\n'$COLOR_RESET
-            
+
             # Cut out subsocial-proxy from images to be pulled
             PULL_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
             [ ${FORCEPULL} = "true" ] && up_docker_compose pull
