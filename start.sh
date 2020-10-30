@@ -159,6 +159,12 @@ create_subsocial_elastic_users(){
     && echo "PASSWORD readonly = $password" >> $ELASTIC_PASSWORDS_PATH
 }
 
+resolve_subsocial_elastic_passwords(){
+    ES_OFFCHAIN_PASSWORD=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi "$ES_OFFCHAIN_USER" | cut -d "=" -f2- | tr -d '[:space:]')
+    ES_READONLY_PASSWORD=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi "$ES_READONLY_USER" | cut -d "=" -f2- | tr -d '[:space:]')
+    printf 'ElasticSearch passwords are set to offchain container\n\n'
+}
+
 up_docker_compose(){
     [[ -z $1 ]] && printf $COLOR_R'FATAL: wrong usage of `up_docker_compose`. Empty parameter $1\n'$COLOR_RESET && exit
     docker-compose -p $PROJECT_NAME $COMPOSE_FILES $1 $2 $3
@@ -625,9 +631,10 @@ while :; do
 
                     create_subsocial_elastic_users
                 fi
+                resolve_subsocial_elastic_passwords
 
-                # Offchain itself
-                [[ $COMPOSE_FILES =~ 'offchain' ]] && docker container start ${CONT_OFFCHAIN} > /dev/null
+                # Restart offchain
+                [[ $COMPOSE_FILES =~ 'offchain' ]] && up_docker_compose up -d offchain
             fi
 
             [[ $COMPOSE_FILES =~ 'offchain' ]] && printf 'Offchain successfully started\n\n'
