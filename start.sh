@@ -67,12 +67,12 @@ export SUBSTRATE_VALIDATOR_IP=172.15.0.22
 # URL variables
 export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
 export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
-export ELASTIC_URL=http://$ELASTICSEARCH_IP:9200
+export OFFCHAIN_WS=ws://127.0.0.1:3011
+export ES_URL=http://$ELASTICSEARCH_IP:9200
 export IPFS_CLUSTER_URL=http://$IPFS_CLUSTER_IP:9094
 export IPFS_NODE_URL=http://$IPFS_NODE_IP:5001
 export IPFS_READ_ONLY_NODE_URL=http://$IPFS_NODE_IP:8080
 export APPS_URL=http://127.0.0.1/bc
-export OFFCHAIN_WS=ws://127.0.0.1:3011
 
 # Container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
@@ -184,12 +184,12 @@ while :; do
 
             SUBSTRATE_RPC_URL='ws://'$IP':9944'
             OFFCHAIN_URL='http://'$IP':3001'
-            ELASTIC_URL='http://'$IP':9200'
+            OFFCHAIN_WS='ws://'$IP':3011'
+            ES_URL='http://'$IP':9200'
             WEBUI_URL='http://'$IP
             APPS_URL='http://'$IP'/bc'
             IPFS_READ_ONLY_NODE_URL='http://'$IP':8080'
             IPFS_NODE_URL='http://'$IP':5001'
-            OFFCHAIN_WS='ws://'$IP':3011'
 
             printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
             ;;
@@ -345,7 +345,7 @@ while :; do
                 printf $COLOR_R'WARN: --elastic-url must be provided with an URL argument\n'$COLOR_RESET >&2
                 break
             else
-                export ELASTIC_URL=$2
+                export ES_URL=$2
                 printf $COLOR_Y'Elasticsearch URL set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
@@ -619,7 +619,7 @@ while :; do
 
                 # Elasticsearch
                 printf "Waiting until Elasticsearch starts...\n"
-                until curl -s ${ELASTIC_URL} > /dev/null; do
+                until curl -s ${ES_URL} > /dev/null; do
                     sleep 1
                 done
 

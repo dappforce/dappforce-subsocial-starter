@@ -7,10 +7,10 @@ services:
     environment:
       - SUBSTRATE_RPC_URL=$SUBSTRATE_RPC_URL
       - OFFCHAIN_URL=$OFFCHAIN_URL
-      - ELASTIC_URL=$ELASTIC_URL
+      - OFFCHAIN_WS=$OFFCHAIN_WS
+      - ES_URL=$ES_URL
       - APPS_URL=$APPS_URL
       - IPFS_URL=$IPFS_READ_ONLY_NODE_URL
-      - OFFCHAIN_WS=$OFFCHAIN_WS
     networks:
       backend:
         ipv4_address: $WEBUI_DOCKER_IP

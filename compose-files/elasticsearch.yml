@@ -27,7 +27,7 @@ services:
       backend:
         ipv4_address: $ELASTICSEARCH_IP
     healthcheck:
-      test: curl -s $ELASTIC_URL
+      test: curl -s $ES_URL
       interval: 10s
       timeout: 10s
       retries: 4
