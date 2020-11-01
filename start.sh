@@ -27,7 +27,7 @@ export CLUSTER_BOOTSTRAP=""
 export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
 export IPFS_CLUSTER_CONSENSUS="crdt"
 
-# Elasticsearch related variables
+# ElasticSearch related variables
 ELASTIC_PASSWORDS_PATH=${EXTERNAL_VOLUME}/es_passwords
 export ES_READONLY_USER="readonly"
 export ES_READONLY_PASSWORD=""
@@ -276,7 +276,7 @@ while :; do
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
-            printf $COLOR_Y'Starting Elasticsearch only...\n\n'$COLOR_RESET
+            printf $COLOR_Y'Starting ElasticSearch only...\n\n'$COLOR_RESET
             ;;
 
         --only-substrate)
@@ -346,7 +346,7 @@ while :; do
                 break
             else
                 export ES_URL=$2
-                printf $COLOR_Y'Elasticsearch URL set to %s\n\n'$COLOR_RESET "$2"
+                printf $COLOR_Y'ElasticSearch URL set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
             ;;
@@ -617,8 +617,8 @@ while :; do
             if [[ $COMPOSE_FILES =~ 'elasticsearch' ]]; then
                 [[ $COMPOSE_FILES =~ 'offchain' ]] && docker container stop ${CONT_OFFCHAIN} > /dev/null
 
-                # Elasticsearch
-                printf "Waiting until Elasticsearch starts...\n"
+                # ElasticSearch
+                printf "Waiting until ElasticSearch starts...\n"
                 until curl -s ${ES_URL} > /dev/null; do
                     sleep 1
                 done
