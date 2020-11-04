@@ -22,3 +22,6 @@ services:
     networks:
       backend:
         ipv4_address: $SUBSTRATE_RPC_IP
+
+volumes:
+  node_rpc_data:

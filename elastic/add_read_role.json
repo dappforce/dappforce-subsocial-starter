@@ -1,0 +1,8 @@
+{
+  "indices" : [
+    {
+      "names" : [ "subsocial_*" ],
+      "privileges" : [ "read" ]
+    }
+  ]
+}

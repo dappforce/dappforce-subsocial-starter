@@ -7,9 +7,3 @@ networks:
       driver: default
       config:
         - subnet: 172.15.0.1/24
-
-volumes:
-  postgres_data:
-  es_data:
-  node_rpc_data:
-  node_validator_data:
