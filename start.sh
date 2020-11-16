@@ -122,12 +122,18 @@ parse_substrate_extra_opts(){
 }
 
 write_boostrap_peers(){
+    test_jq_installation
+
     printf "\nIPFS Cluster peers:\n"
     while :; do
         if [[ -z $1 ]]; then
             break
         else
             printf $1'\n'
+            local temp_file_name=tmp.$$.json
+            local new_trusted_peers_query=".cluster.peer_addresses += [$1]"
+            jq "$new_trusted_peers_query" $CLUSTER_CONFIG_PATH > $temp_file_name
+            mv $temp_file_name $CLUSTER_CONFIG_PATH
             shift
         fi
     done
@@ -170,6 +176,16 @@ up_docker_compose(){
     [[ -z $1 ]] && printf $COLOR_R'FATAL: wrong usage of `up_docker_compose`. Empty parameter $1\n'$COLOR_RESET \
         && exit -1
     docker-compose -p $PROJECT_NAME $COMPOSE_FILES $1 $2 $3
+}
+
+test_jq_installation(){
+    # Test whether jq is installed and install if not
+    while ! type jq > /dev/null; do
+        printf $COLOR_R'WARN: jq is not installed on your system.'$COLOR_RESET >&2
+        printf 'Trying to install the jq, root permissions may be required...\n'
+        sudo apt install jq
+        break
+    done
 }
 
 while :; do
@@ -504,13 +520,7 @@ while :; do
             ;;
 
         --cluster-peers)
-            # Test whether jq is installed and install if not
-            while ! type jq > /dev/null; do
-                printf $COLOR_R'WARN: jq is not installed on your system.'$COLOR_RESET >&2
-                printf 'Trying to install the jq, root permissions may be required...\n'
-                sudo apt install jq
-                break
-            done
+            test_jq_installation
 
             if [[ -z '$2' ]] || [[ -z '$3' ]]; then
                 printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) and URI(s) JSON array\n' >&2
