@@ -11,9 +11,15 @@ services:
     ports:
       - "8080:8080"
       - "5001:5001"
+      - "4001:4001"
     networks:
       backend:
         ipv4_address: $IPFS_NODE_IP
+    healthcheck:
+      test: curl -s ${IPFS_READ_ONLY_NODE_URL}/version
+      interval: 5s
+      timeout: 5s
+      retries: 3
 
   ipfs-cluster:
     image: ipfs/ipfs-cluster:$IPFS_CLUSTER_VERSION
