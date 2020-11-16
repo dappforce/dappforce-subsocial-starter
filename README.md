@@ -166,8 +166,10 @@ We use `--only-ipfs` to run IPFS only:
 You can specify initial IPFS cluster bootnodes in order to connect to Subsocial as a cluster peer. Example:
 
 ```
-./start.sh --only-ipfs --cluster-bootstrap "/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWRRyJpS847KJQCEXqWC3AFjaweTBtVvA8DmLz9RxA7yQW"
+./start.sh --only-ipfs --cluster-bootstrap '"/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWRRyJpS847KJQCEXqWC3AFjaweTBtVvA8DmLz9RxA7yQW"'
 ```
+
+**NOTE:** all Peer URIs should be wrapped by double quotes and listed with comma.
 
 If you want to add, remove or entirely override trusted peers (ones that are able to pin/unpin content on IPFS), you might want to use `--cluster-peers` option:
 
