@@ -531,7 +531,6 @@ while :; do
                 break
             fi
 
-            CLUSTER_CONFIG_PATH=$CLUSTER_CONFIG_FOLDER/service.json
             if [[ ! -f $CLUSTER_CONFIG_PATH ]]; then
                 printf $COLOR_R'ERROR: IPFS Cluster is not yet started.\n' >&2
                 prtinf '>> Start IPFS Cluster to create config JSON\n'$COLOR_RESET >&2
