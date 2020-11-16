@@ -145,6 +145,53 @@ wait_for_ipfs_node(){
     done
 }
 
+stop_container() {
+    local cont_name=""
+
+    [[ -z $1 ]] || [[ ! -z $2 ]] \
+        && printf $COLOR_R"FATAL: 'stop' command must be provided with 1 argument" \
+        && exit -1
+
+    [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
+        && docker container stop ${CONT_OFFCHAIN} > /dev/null
+
+    if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
+        [[ $1 == ipfs-cluster ]] && cont_name=$CONT_IPFS_CLUSTER
+        [[ $1 == ipfs-node ]] && cont_name=$CONT_IPFS_NODE
+
+        [[ ! -z $cont_name ]] && docker container stop $cont_name > /dev/null \
+            || echo "nothing to stop" > /dev/null
+    fi
+}
+
+# Starts container if all conditions are true:
+# - Corresponding service exists in $COMPOSE_FILES set
+# - Container is paused at the moment
+start_container(){
+    local cont_name
+
+    [[ -z $1 ]] || [[ ! -z $2 ]] \
+        && printf $COLOR_R"FATAL: 'stop' command must be provided with 1 argument" && exit -1
+
+    [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
+        && cont_name=${CONT_OFFCHAIN}
+
+    if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
+        [[ $1 == ipfs-cluster ]] && cont_name=$CONT_IPFS_CLUSTER
+        [[ $1 == ipfs-node ]] && cont_name=$CONT_IPFS_NODE
+    fi
+
+    local is_running=$(docker ps | grep -wi "${cont_name}")
+    local exists=$(docker ps -a | grep -wi "${cont_name}")
+    if [[ -z $exists ]]; then
+        printf $COLOR_R"ERROR: container ${cont_name} doesn't exist\n"
+        exit 1
+    else
+        [[ -z $is_running ]] && [[ ! -z $cont_name ]] \
+            && docker container start $cont_name > /dev/null
+    fi
+}
+
 create_subsocial_elastic_users(){
     local password
     local elastic_password=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi 'elastic' | cut -d "=" -f2- | tr -d '[:space:]')
@@ -626,7 +673,7 @@ while :; do
             [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
 
             if [[ $COMPOSE_FILES =~ 'elasticsearch' ]]; then
-                [[ $COMPOSE_FILES =~ 'offchain' ]] && docker container stop ${CONT_OFFCHAIN} > /dev/null
+                stop_container offchain
 
                 # ElasticSearch
                 printf "Waiting until ElasticSearch starts...\n"
@@ -643,17 +690,15 @@ while :; do
 
                     create_subsocial_elastic_users
                 fi
-                resolve_subsocial_elastic_passwords
 
-                # Restart offchain
-                [[ $COMPOSE_FILES =~ 'offchain' ]] && up_docker_compose up -d offchain
+                resolve_subsocial_elastic_passwords
             fi
 
-            [[ $COMPOSE_FILES =~ 'offchain' ]] && printf 'Offchain successfully started\n\n'
-
             if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
+                stop_container offchain
+                stop_container ipfs-cluster
+
                 printf "Wait until IPFS node starts\n"
-                wait_for_ipfs_node
 
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
@@ -666,11 +711,13 @@ while :; do
                 wait_for_ipfs_node
 
                 printf "Setting up IPFS cluster...\n"
-                if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
-                    write_boostrap_peers $CLUSTER_BOOTSTRAP
-                    echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
-                fi
-                docker restart ${CONT_IPFS_CLUSTER} > /dev/null
+                [[ ! -z $CLUSTER_BOOTSTRAP ]] && write_boostrap_peers $CLUSTER_BOOTSTRAP
+                start_container ipfs-cluster
+            fi
+
+            if [[ $COMPOSE_FILES =~ 'offchain' ]]; then
+                start_container offchain
+                printf 'Offchain successfully started\n\n'
             fi
 
             if [[ $COMPOSE_FILES =~ 'web_ui' ]]; then
