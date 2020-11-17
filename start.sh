@@ -25,6 +25,7 @@ export CLUSTER_SECRET=""
 export CLUSTER_PEERNAME="Subsocial Cluster"
 export CLUSTER_BOOTSTRAP=""
 export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
+CLUSTER_CONFIG_PATH=$CLUSTER_CONFIG_FOLDER/service.json
 export IPFS_CLUSTER_CONSENSUS="crdt"
 
 # ElasticSearch related variables
@@ -111,7 +112,7 @@ COLOR_RESET="\033[00m"
 
 parse_substrate_extra_opts(){
     while :; do
-        if [ -z $1 ]; then
+        if [[ -z $1 ]]; then
             break
         else
             SUBSTRATE_NODE_EXTRA_OPTS+=' '$1
@@ -121,12 +122,18 @@ parse_substrate_extra_opts(){
 }
 
 write_boostrap_peers(){
+    test_jq_installation
+
     printf "\nIPFS Cluster peers:\n"
     while :; do
-        if [ -z $1 ]; then
+        if [[ -z $1 ]]; then
             break
         else
             printf $1'\n'
+            local temp_file_name=tmp.$$.json
+            local new_trusted_peers_query=".cluster.peer_addresses += [$1]"
+            jq "$new_trusted_peers_query" $CLUSTER_CONFIG_PATH > $temp_file_name
+            mv $temp_file_name $CLUSTER_CONFIG_PATH
             shift
         fi
     done
@@ -136,6 +143,53 @@ wait_for_ipfs_node(){
     until curl -s ${IPFS_READ_ONLY_NODE_URL}/version > /dev/null; do
         sleep 1
     done
+}
+
+stop_container() {
+    local cont_name=""
+
+    [[ -z $1 ]] || [[ ! -z $2 ]] \
+        && printf $COLOR_R"FATAL: 'stop' command must be provided with one argument" \
+        && exit -1
+
+    [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
+        && docker container stop ${CONT_OFFCHAIN} > /dev/null
+
+    if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
+        [[ $1 == ipfs-cluster ]] && cont_name=$CONT_IPFS_CLUSTER
+        [[ $1 == ipfs-node ]] && cont_name=$CONT_IPFS_NODE
+
+        [[ ! -z $cont_name ]] && docker container stop $cont_name > /dev/null \
+            || echo "nothing to stop" > /dev/null
+    fi
+}
+
+# Starts a container if the next conditions are met:
+# - Corresponding service exists in $COMPOSE_FILES set
+# - Container is paused at the moment
+start_container(){
+    local cont_name
+
+    [[ -z $1 ]] || [[ ! -z $2 ]] \
+        && printf $COLOR_R"FATAL: 'stop' command must be provided with one argument" && exit -1
+
+    [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
+        && cont_name=${CONT_OFFCHAIN}
+
+    if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
+        [[ $1 == ipfs-cluster ]] && cont_name=$CONT_IPFS_CLUSTER
+        [[ $1 == ipfs-node ]] && cont_name=$CONT_IPFS_NODE
+    fi
+
+    local is_running=$(docker ps | grep -wi "${cont_name}")
+    local exists=$(docker ps -a | grep -wi "${cont_name}")
+    if [[ -z $exists ]]; then
+        printf $COLOR_R"ERROR: container ${cont_name} doesn't exist\n"
+        exit 1
+    else
+        [[ -z $is_running ]] && [[ ! -z $cont_name ]] \
+            && docker container start $cont_name > /dev/null
+    fi
 }
 
 create_subsocial_elastic_users(){
@@ -166,8 +220,19 @@ resolve_subsocial_elastic_passwords(){
 }
 
 up_docker_compose(){
-    [[ -z $1 ]] && printf $COLOR_R'FATAL: wrong usage of `up_docker_compose`. Empty parameter $1\n'$COLOR_RESET && exit
+    [[ -z $1 ]] && printf $COLOR_R'FATAL: wrong usage of `up_docker_compose`. Empty parameter $1\n'$COLOR_RESET \
+        && exit -1
     docker-compose -p $PROJECT_NAME $COMPOSE_FILES $1 $2 $3
+}
+
+test_jq_installation(){
+    # Test whether jq is installed and install if not
+    while ! type jq > /dev/null; do
+        printf $COLOR_R'WARN: jq is not installed on your system.'$COLOR_RESET >&2
+        printf 'Trying to install the jq, root permissions may be required...\n'
+        sudo apt install jq
+        break
+    done
 }
 
 while :; do
@@ -202,7 +267,7 @@ while :; do
 
         # Specify docker images tag
         --tag)
-            if [ -z $2 ] || [[ $2 == *'--'* ]]; then
+            if [[ -z $2 ]] || [[ $2 == *'--'* ]]; then
                 printf $COLOR_R'WARN: --tag must be provided with a tag name argument\n'$COLOR_RESET >&2
                 break
             else
@@ -319,7 +384,7 @@ while :; do
         #################################################
 
         --substrate-url)
-            if [ -z $2 ] || [[ $2 =~ --.* ]] || ! [[ $2 =~ wss?://.*:?.* ]]; then
+            if [[ -z $2 ]] || [[ $2 =~ --.* ]] || ! [[ $2 =~ wss?://.*:?.* ]]; then
                 printf $COLOR_R'WARN: --substrate-url must be provided with an ws(s)://IP:PORT argument\n'$COLOR_RESET >&2
                 break
             else
@@ -330,7 +395,7 @@ while :; do
             ;;
 
         --offchain-url)
-            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]]; then
+            if [[ -z $2 ]] || ! [[ $2 =~ https?://.* ]]; then
                 printf $COLOR_R'WARN: --offchain-url must be provided with URL argument\n'$COLOR_RESET >&2
                 break
             else
@@ -341,7 +406,7 @@ while :; do
             ;;
 
         --elastic-url)
-            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]]; then
+            if [[ -z $2 ]] || ! [[ $2 =~ https?://.* ]]; then
                 printf $COLOR_R'WARN: --elastic-url must be provided with an URL argument\n'$COLOR_RESET >&2
                 break
             else
@@ -352,7 +417,7 @@ while :; do
             ;;
 
         --webui-url)
-            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]]; then
+            if [[ -z $2 ]] || ! [[ $2 =~ https?://.* ]]; then
                 printf $COLOR_R'WARN: --webui-url must be provided with a URL string\n'$COLOR_RESET >&2
                 break
             else
@@ -363,7 +428,7 @@ while :; do
             ;;
 
         --apps-url)
-            if [ -z $2 ] || ! [[ $2 =~ https?://.* ]]; then
+            if [[ -z $2 ]] || ! [[ $2 =~ https?://.* ]]; then
                 printf $COLOR_R'WARN: --apps-url must be provided with an URL argument\n'$COLOR_RESET >&2
                 break
             else
@@ -376,7 +441,7 @@ while :; do
         --ipfs-ip)
             # TODO: regex check
             # TODO: add https support
-            if [ -z $2 ] || [ -z $3 ]; then
+            if [[ -z $2 ]] || [[ -z $3 ]]; then
                 printf $COLOR_R'ERROR: --ipfs-ip must be provided with (node/cluster/all) and IP arguments\nExample: --ipfs-ip cluster 172.15.0.9\n'$COLOR_RESET >&2
                 break
             fi
@@ -421,7 +486,7 @@ while :; do
             ;;
 
         --substrate-mode)
-            if [ -z $2 ]; then
+            if [[ -z $2 ]]; then
                 printf $COLOR_R'USAGE: --substrate-mode (all/rpc/validator)\n'$COLOR_RESET >&2
                 break
             else
@@ -502,15 +567,9 @@ while :; do
             ;;
 
         --cluster-peers)
-            # Test whether jq is installed and install if not
-            while ! type jq > /dev/null; do
-                printf $COLOR_R'WARN: jq is not installed on your system.'$COLOR_RESET >&2
-                printf 'Trying to install the jq, root permissions may be required...\n'
-                sudo apt install jq
-                break
-            done
+            test_jq_installation
 
-            if [ -z '$2' ] || [ -z '$3' ]; then
+            if [[ -z '$2' ]] || [[ -z '$3' ]]; then
                 printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) and URI(s) JSON array\n' >&2
                 printf "Example of rewriting peers: "$COLOR_RESET"--cluster-peers override '[\"*\"]'\n" >&2
                 printf $COLOR_R"Example of adding a peer: "$COLOR_RESET"--cluster-peers add '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
@@ -519,8 +578,7 @@ while :; do
                 break
             fi
 
-            _cluster_config_path=$CLUSTER_CONFIG_FOLDER/service.json
-            if [[ ! -f $_cluster_config_path ]]; then
+            if [[ ! -f $CLUSTER_CONFIG_PATH ]]; then
                 printf $COLOR_R'ERROR: IPFS Cluster is not yet started.\n' >&2
                 prtinf '>> Start IPFS Cluster to create config JSON\n'$COLOR_RESET >&2
                 break
@@ -543,8 +601,8 @@ while :; do
             esac
 
             _temp_file_name=tmp.$$.json
-            jq "$_new_trusted_peers_query" $_cluster_config_path > $_temp_file_name
-            mv $_temp_file_name $_cluster_config_path
+            jq "$_new_trusted_peers_query" $CLUSTER_CONFIG_PATH > $_temp_file_name
+            mv $_temp_file_name $CLUSTER_CONFIG_PATH
 
             printf $COLOR_Y'%s (%s) on IPFS Cluster trusted peers\n\n'$COLOR_RESET "$3" "$2"
             shift 2
@@ -580,7 +638,7 @@ while :; do
 
         *)
             mkdir ${EXTERNAL_VOLUME} 2> /dev/null || true
-            if [ ${STOPPING_MODE} != "none" ]; then
+            if [[ ${STOPPING_MODE} != "none" ]]; then
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
                 data_status=$DATA_STATUS_SAVED
 
@@ -609,13 +667,13 @@ while :; do
 
             # Cut out subsocial-proxy from images to be pulled
             PULL_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
-            [ ${FORCEPULL} = "true" ] && up_docker_compose pull
+            [[ ${FORCEPULL} = "true" ]] && up_docker_compose pull
             up_docker_compose up -d
 
             [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
 
             if [[ $COMPOSE_FILES =~ 'elasticsearch' ]]; then
-                [[ $COMPOSE_FILES =~ 'offchain' ]] && docker container stop ${CONT_OFFCHAIN} > /dev/null
+                stop_container offchain
 
                 # ElasticSearch
                 printf "Waiting until ElasticSearch starts...\n"
@@ -623,6 +681,7 @@ while :; do
                     sleep 1
                 done
 
+                # TODO: check whether it's the first start of ElasticSearch instead
                 if [[ ! -f $ELASTIC_PASSWORDS_PATH ]]; then
                     printf "Generating passwords for ElasticSearch...\n"
                     docker exec -t subsocial-elasticsearch bin/elasticsearch-setup-passwords auto -b \
@@ -631,17 +690,15 @@ while :; do
 
                     create_subsocial_elastic_users
                 fi
-                resolve_subsocial_elastic_passwords
 
-                # Restart offchain
-                [[ $COMPOSE_FILES =~ 'offchain' ]] && up_docker_compose up -d offchain
+                resolve_subsocial_elastic_passwords
             fi
 
-            [[ $COMPOSE_FILES =~ 'offchain' ]] && printf 'Offchain successfully started\n\n'
-
             if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
+                stop_container offchain
+                stop_container ipfs-cluster
+
                 printf "Wait until IPFS node starts\n"
-                wait_for_ipfs_node
 
                 until (
                     docker exec ${CONT_IPFS_NODE} ipfs config --json \
@@ -654,11 +711,13 @@ while :; do
                 wait_for_ipfs_node
 
                 printf "Setting up IPFS cluster...\n"
-                if [[ ! -z $CLUSTER_BOOTSTRAP ]]; then
-                    write_boostrap_peers $CLUSTER_BOOTSTRAP
-                    echo $CLUSTER_BOOTSTRAP >> $CLUSTER_CONFIG_FOLDER/peerstore
-                fi
-                docker restart ${CONT_IPFS_CLUSTER} > /dev/null
+                [[ ! -z $CLUSTER_BOOTSTRAP ]] && write_boostrap_peers $CLUSTER_BOOTSTRAP
+                start_container ipfs-cluster
+            fi
+
+            if [[ $COMPOSE_FILES =~ 'offchain' ]]; then
+                start_container offchain
+                printf 'Offchain successfully started\n\n'
             fi
 
             if [[ $COMPOSE_FILES =~ 'web_ui' ]]; then
@@ -676,3 +735,4 @@ while :; do
 done
 
 popd > /dev/null
+exit 0

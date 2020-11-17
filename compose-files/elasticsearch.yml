@@ -5,7 +5,7 @@ services:
     container_name: $CONT_ELASTICSEARCH
     restart: on-failure
     environment:
-      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      ES_JAVA_OPTS: "-Xms512m -Xmx1g"
       MAX_MAP_COUNT: "64000"
       bootstrap.memory_lock: "true"
       discovery.type: "single-node"

@@ -10,7 +10,7 @@ To learn more about Subsocial, please visit us at [Subsocial.Network](http://sub
 
 Subsocial is the recipient of a technical grant from Web3 Foundation -
 [official announcement](https://medium.com/web3foundation/web3-foundation-grants-wave-3-recipients-6426e77f1230).
-We have successfully delivered on all three milestones submitted in our grant application. 
+We have successfully delivered on all three milestones submitted in our grant application.
 
 ## Requirements
 
@@ -47,7 +47,7 @@ If you're new to Subsocial, it is best to start with the defaults.
 
 ```
 git clone https://github.com/dappforce/dappforce-subsocial-starter.git
-cd dappforce-subsocial-starter 
+cd dappforce-subsocial-starter
 ```
 
 ### Start entire Subsocial project locally
@@ -166,8 +166,10 @@ We use `--only-ipfs` to run IPFS only:
 You can specify initial IPFS cluster bootnodes in order to connect to Subsocial as a cluster peer. Example:
 
 ```
-./start.sh --only-ipfs --cluster-bootstrap "/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWRRyJpS847KJQCEXqWC3AFjaweTBtVvA8DmLz9RxA7yQW"
+./start.sh --only-ipfs --cluster-bootstrap '"/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWRRyJpS847KJQCEXqWC3AFjaweTBtVvA8DmLz9RxA7yQW","/ip4/174.100.4.101/tcp/9096/p2p/12D3KooWGsddM5p5M2HMF6egoR28mCwnKg75UE6K29BMvzux3WdY"'
 ```
+
+**NOTE:** `--cluster-bootstrap` value should be provided as a single string with URIs wrapped in double-quotes (`"`) each and separated by commas.
 
 If you want to add, remove or entirely override trusted peers (ones that are able to pin/unpin content on IPFS), you might want to use `--cluster-peers` option:
 
@@ -202,7 +204,7 @@ To get *Peer URI* (e.g `/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ
 
 ## Advanced
 
-### Available options 
+### Available options
 
 The [start.sh](start.sh) script comes with a set of options for customizing project startup.
 

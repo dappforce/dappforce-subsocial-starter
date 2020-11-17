@@ -11,6 +11,7 @@ services:
     ports:
       - "8080:8080"
       - "5001:5001"
+      - "4001:4001"
     networks:
       backend:
         ipv4_address: $IPFS_NODE_IP
