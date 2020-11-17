@@ -169,7 +169,7 @@ You can specify initial IPFS cluster bootnodes in order to connect to Subsocial 
 ./start.sh --only-ipfs --cluster-bootstrap '"/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWRRyJpS847KJQCEXqWC3AFjaweTBtVvA8DmLz9RxA7yQW","/ip4/174.100.4.101/tcp/9096/p2p/12D3KooWGsddM5p5M2HMF6egoR28mCwnKg75UE6K29BMvzux3WdY"'
 ```
 
-**NOTE:** An argument to `--cluster-bootstrap` should be provided as a single string with URIs wrapped by double quotes each and all are listed separated by commas.
+**NOTE:** `--cluster-bootstrap` value should be provided as a single string with URIs wrapped in double-quotes (`"`) each and separated by commas.
 
 If you want to add, remove or entirely override trusted peers (ones that are able to pin/unpin content on IPFS), you might want to use `--cluster-peers` option:
 

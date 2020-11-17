@@ -149,7 +149,7 @@ stop_container() {
     local cont_name=""
 
     [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'stop' command must be provided with 1 argument" \
+        && printf $COLOR_R"FATAL: 'stop' command must be provided with one argument" \
         && exit -1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
@@ -164,14 +164,14 @@ stop_container() {
     fi
 }
 
-# Starts container if all conditions are true:
+# Starts a container if the next conditions are met:
 # - Corresponding service exists in $COMPOSE_FILES set
 # - Container is paused at the moment
 start_container(){
     local cont_name
 
     [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'stop' command must be provided with 1 argument" && exit -1
+        && printf $COLOR_R"FATAL: 'stop' command must be provided with one argument" && exit -1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
         && cont_name=${CONT_OFFCHAIN}
