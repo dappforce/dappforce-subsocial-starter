@@ -149,7 +149,7 @@ stop_container() {
     local cont_name=""
 
     [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'stop' command must be provided with one argument" \
+        && printf $COLOR_R"FATAL: 'stop_container' command must be provided with one argument" \
         && exit -1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
@@ -171,7 +171,7 @@ start_container(){
     local cont_name
 
     [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'start' command must be provided with one argument" && exit -1
+        && printf $COLOR_R"FATAL: 'start_container' command must be provided with one argument" && exit -1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
         && cont_name=${CONT_OFFCHAIN}
@@ -196,7 +196,7 @@ recreate_container(){
     local recreate_allowed=""
 
     [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'recreate' command must be provided with one argument" && exit -1
+        && printf $COLOR_R"FATAL: 'recreate_container' command must be provided with one argument" && exit -1
 
     [[ $1 == offchain && $COMPOSE_FILES =~ 'offchain' ]] \
         && recreate_allowed="true"
