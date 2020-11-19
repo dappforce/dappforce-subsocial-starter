@@ -149,7 +149,7 @@ stop_container() {
     local cont_name=""
 
     [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'stop' command must be provided with one argument" \
+        && printf $COLOR_R"FATAL: 'stop_container' command must be provided with one argument" \
         && exit -1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
@@ -171,7 +171,7 @@ start_container(){
     local cont_name
 
     [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'stop' command must be provided with one argument" && exit -1
+        && printf $COLOR_R"FATAL: 'start_container' command must be provided with one argument" && exit -1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
         && cont_name=${CONT_OFFCHAIN}
@@ -189,6 +189,26 @@ start_container(){
     else
         [[ -z $is_running ]] && [[ ! -z $cont_name ]] \
             && docker container start $cont_name > /dev/null
+    fi
+}
+
+recreate_container(){
+    local recreate_allowed=""
+
+    [[ -z $1 ]] || [[ ! -z $2 ]] \
+        && printf $COLOR_R"FATAL: 'recreate_container' command must be provided with one argument" && exit -1
+
+    [[ $1 == offchain && $COMPOSE_FILES =~ 'offchain' ]] \
+        && recreate_allowed="true"
+
+    [[ $1 == ipfs-cluster || $1 == ipfs-node ]] && [[ $COMPOSE_FILES =~ 'ipfs' ]] \
+        && recreate_allowed="true"
+
+    if [[ -z $recreate_allowed ]]; then
+        printf $COLOR_R"ERROR: $1 cannot be restarted before corresponding service included"
+        exit 1
+    else
+        exec_docker_compose up -d $1
     fi
 }
 
@@ -219,10 +239,11 @@ resolve_subsocial_elastic_passwords(){
     printf 'ElasticSearch passwords are set to offchain container\n\n'
 }
 
-up_docker_compose(){
-    [[ -z $1 ]] && printf $COLOR_R'FATAL: wrong usage of `up_docker_compose`. Empty parameter $1\n'$COLOR_RESET \
+exec_docker_compose(){
+    [[ -z $1 ]] && printf $COLOR_R'FATAL: wrong usage of `exec_docker_compose`. Empty parameter $1\n'$COLOR_RESET \
         && exit -1
-    docker-compose -p $PROJECT_NAME $COMPOSE_FILES $1 $2 $3
+
+    docker-compose -p $PROJECT_NAME $COMPOSE_FILES $1 $2 $3 > /dev/null
 }
 
 test_jq_installation(){
@@ -642,12 +663,12 @@ while :; do
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
                 data_status=$DATA_STATUS_SAVED
 
-                docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES down
+                exec_docker_compose down
                 if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
                     printf $COLOR_R'"purge-volumes" will clean all data produced by the project (Postgres, ElasticSearch, etc).\n'
                     printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read answer_to_purge
                     if [[ $answer_to_purge == "Y" ]]; then
-                        docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES down -v || true
+                        docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES down -v 2> /dev/null || true
 
                         printf $COLOR_Y'Cleaning IPFS data, Offchain state and ES passwords. Root may be required.\n'$COLOR_RESET
                         [[ -d $EXTERNAL_VOLUME ]] && sudo rm -rf $EXTERNAL_VOLUME || true
@@ -667,8 +688,8 @@ while :; do
 
             # Cut out subsocial-proxy from images to be pulled
             PULL_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
-            [[ ${FORCEPULL} = "true" ]] && up_docker_compose pull
-            up_docker_compose up -d
+            [[ ${FORCEPULL} = "true" ]] && exec_docker_compose pull
+            exec_docker_compose up -d
 
             [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
 
@@ -716,7 +737,7 @@ while :; do
             fi
 
             if [[ $COMPOSE_FILES =~ 'offchain' ]]; then
-                start_container offchain
+                recreate_container offchain
                 printf 'Offchain successfully started\n\n'
             fi
 
