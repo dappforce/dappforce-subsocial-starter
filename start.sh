@@ -4,7 +4,7 @@ set -e
 pushd . > /dev/null
 
 # The following lines ensure we run from the root folder of this Starter
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 COMPOSE_DIR="${DIR}/compose-files"
 
 # Default props
@@ -49,15 +49,12 @@ export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
 export NODE_VERSION=latest
 export WEBUI_VERSION=latest
-export PROXY_VERSION=latest
 
 # Internal Docker IP variables
-# [!] Update files in nginx folder if changed
 export WEBUI_DOCKER_IP=172.15.0.2
 export OFFCHAIN_IP=172.15.0.3
 export POSTGRES_IP=172.15.0.4
 export ELASTICSEARCH_IP=172.15.0.5
-export NGINX_PROXY_IP=172.15.0.7
 export IPFS_NODE_IP=172.15.0.8
 export IPFS_CLUSTER_IP=172.15.0.9
 export SUBSTRATE_RPC_IP=172.15.0.21
@@ -95,7 +92,7 @@ COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
 COMPOSE_FILES+=${SELECTED_SUBSTRATE}
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
+COMPOSE_FILES+=" -f ${COMPOSE_DIR}/caddy.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
 
 # colors
@@ -259,6 +256,7 @@ while :; do
         #################################################
 
         # Start binding components to global ip
+        # TODO: do we need this?
         --global)
 
             IP=$(curl -s ifconfig.me)
@@ -324,8 +322,8 @@ while :; do
             ;;
 
         --no-proxy)
-            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
-            printf $COLOR_Y'Starting without NGINX Proxy...\n\n'$COLOR_RESET
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/caddy.yml/}"
+            printf $COLOR_Y'Starting without Caddy server Proxy...\n\n'$COLOR_RESET
             ;;
 
         --no-ipfs)
@@ -369,9 +367,8 @@ while :; do
 
         --only-proxy)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/nginx_proxy.yml"
-            printf $COLOR_Y'Starting only Nginx proxy...\n\n'$COLOR_RESET
+            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/caddy.yml"
+            printf $COLOR_Y'Starting only Caddy server proxy...\n\n'$COLOR_RESET
             ;;
 
         --only-ipfs)
@@ -603,7 +600,7 @@ while :; do
         # Extra options for offchain
         #################################################
 
-        # TODO: finish this argument
+        # TODO: add support of multiple addresses
         --offchain-cors)
             if [[ -z $2 ]]; then
                 printf $COLOR_R'WARN: --offchain-cors must be provided with URL(s) string\n'$COLOR_RESET >&2
@@ -656,8 +653,6 @@ while :; do
 
             printf $COLOR_Y'Starting Subsocial...\n\n'$COLOR_RESET
 
-            # Cut out subsocial-proxy from images to be pulled
-            PULL_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/nginx_proxy.yml/}"
             [[ ${FORCEPULL} = "true" ]] && exec_docker_compose pull
             exec_docker_compose up -d
 
