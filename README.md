@@ -264,19 +264,6 @@ This can be managed with `--no-webui` and `--only-webui` options.
 | ------------------ | ------------- | ------------------------------------- | ---------------------------------------------- |
 | `subsocial-web-ui` |               | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui) |
 
-### Blockchain Explorer
-
-By default the project will start one container for Blockchain Explorer (a fork of [Polkadot.js Apps](https://github.com/polkadot-js/apps)).
-If it is running, you can navigate to it from **"Advanced"** tab in the Web UI side-menu:
-
-[http://localhost/bc](http://localhost/bc)
-
-This can be managed with `--no-apps` and `--only-apps` options.
-
-| Container name   | External Port | Local URL           | Description                                                  |
-| ---------------- | ------------- | ------------------- | ------------------------------------------------------------ |
-| `subsocial-apps` |               | http://localhost/bc | [Subsocial Apps](https://github.com/dappforce/dappforce-subsocial-apps) |
-
 ## License
 
 Subsocial is [GPL 3.0](./LICENSE) licensed.
