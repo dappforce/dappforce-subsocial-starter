@@ -10,6 +10,7 @@ COMPOSE_DIR="${DIR}/compose-files"
 # Default props
 export IP=127.0.0.1
 export WEBUI_URL=http://$IP
+export WEB_UI_LOG_LEVEL=info
 
 PROJECT_NAME="subsocial"
 FORCEPULL="false"

@@ -5,12 +5,14 @@ services:
     container_name: $CONT_WEBUI
     restart: on-failure
     environment:
-      - SUBSTRATE_RPC_URL=$SUBSTRATE_RPC_URL
+      - LOG_LEVEL=$WEB_UI_LOG_LEVEL
+      - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
       - OFFCHAIN_URL=$OFFCHAIN_URL
       - OFFCHAIN_WS=$OFFCHAIN_WS
       - ES_URL=$ES_URL
-      - APPS_URL=$APPS_URL
       - IPFS_URL=$IPFS_READ_ONLY_NODE_URL
+    ports:
+      - "3003:3003"
     networks:
       backend:
         ipv4_address: $WEBUI_DOCKER_IP
