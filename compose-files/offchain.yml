@@ -23,6 +23,7 @@ services:
       - postgres
       - elasticsearch
     restart: on-failure
+    command: $OFFCHAIN_CUSTOM_CMD
     environment:
       - NODE_ENV=production
       - SUBSTRATE_URL=$SUBSTRATE_RPC_URL

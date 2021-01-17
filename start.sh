@@ -41,6 +41,7 @@ export SUBSTRATE_NODE_EXTRA_OPTS=""
 
 # Offchain related variables
 export OFFCHAIN_CORS="http://localhost"
+export OFFCHAIN_CUSTOM_CMD=""
 
 # Version variables
 export POSTGRES_VERSION=12.4
@@ -609,6 +610,17 @@ while :; do
             else
                 OFFCHAIN_CORS=$2
                 printf $COLOR_Y'Offchain CORS set to '$2'\n\n'$COLOR_RESET
+                shift
+            fi
+            ;;
+
+        --offchain-cmd)
+            if [[ -z $2 ]]; then
+                printf $COLOR_R'WARN: --offchain-cmd must be provided with a command string\n'$COLOR_RESET >&2
+                break
+            else
+                # parse_offchain_command $2
+                OFFCHAIN_CUSTOM_CMD="'$2'"
                 shift
             fi
             ;;
