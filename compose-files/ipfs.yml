@@ -5,8 +5,8 @@ services:
     container_name: $CONT_IPFS_NODE
     restart: on-failure
     volumes:
-      - $EXTERNAL_VOLUME/ipfs/daemon/staging:/export
-      - $EXTERNAL_VOLUME/ipfs/daemon/data:/data/ipfs
+      - ${IPFS_NODE_STAGING}:/export
+      - ${IPFS_NODE_DATA}:/data/ipfs
     ports:
       - "8080:8080"
       - "5001:5001"
@@ -34,7 +34,7 @@ services:
       - "9094:9094"
       - "9096:9096"
     volumes:
-      - $CLUSTER_CONFIG_FOLDER:/data/ipfs-cluster
+      - ${CLUSTER_CONFIG_FOLDER}:/data/ipfs-cluster
     networks:
       backend:
         ipv4_address: $IPFS_CLUSTER_IP

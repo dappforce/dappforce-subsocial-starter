@@ -82,6 +82,11 @@ export CONT_NODE_VALIDATOR=${PROJECT_NAME}-node-validator
 export CONT_WEBUI=${PROJECT_NAME}-web-ui
 export CONT_CADDY=${PROJECT_NAME}-proxy
 
+# Docker external volumes
+export IPFS_NODE_STAGING=${EXTERNAL_VOLUME}/ipfs-${PROJECT_NAME}/daemon/staging
+export IPFS_NODE_DATA=${EXTERNAL_VOLUME}/ipfs-${PROJECT_NAME}/daemon/data
+export OFFCHAIN_STATE=${EXTERNAL_VOLUME}/offchain-state-${PROJECT_NAME}
+
 # Docker-compose files list
 SUBSTRATE_RPC_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_rpc.yml"
 SUBSTRATE_VALIDATOR_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_validator.yml"

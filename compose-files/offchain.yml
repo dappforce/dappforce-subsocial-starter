@@ -38,7 +38,7 @@ services:
       - IPFS_CLUSTER_URL=$IPFS_CLUSTER_URL
       - CORS_ALLOWED_ORIGIN=$OFFCHAIN_CORS
     volumes:
-      - $EXTERNAL_VOLUME/offchain_state:/app/build/state
+      - ${OFFCHAIN_STATE}:/app/build/state
     ports:
       - "3001:3001"
       - "3011:3011"
