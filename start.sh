@@ -11,11 +11,11 @@ COMPOSE_DIR="${DIR}/compose-files"
 export IP=127.0.0.1
 export WEBUI_URL=http://$IP
 export WEB_UI_LOG_LEVEL=info
+export EXTERNAL_VOLUME=~/subsocial_data
 
 PROJECT_NAME="subsocial"
 FORCEPULL="false"
-export EXTERNAL_VOLUME=~/subsocial_data
-STOPPING_MODE="none"
+STOP_MODE="none"
 DATA_STATUS_PRUNED="(data pruned)"
 DATA_STATUS_SAVED="(data saved)"
 
@@ -297,9 +297,9 @@ while :; do
         # Delete project's docker containers
         --stop)
             if [[ $2 == "purge-volumes" ]]; then
-              STOPPING_MODE=$2
+                STOP_MODE=$2
             else
-              STOPPING_MODE="default"
+                STOP_MODE="default"
             fi
             ;;
 
@@ -639,12 +639,12 @@ while :; do
 
         *)
             mkdir ${EXTERNAL_VOLUME} 2> /dev/null || true
-            if [[ ${STOPPING_MODE} != "none" ]]; then
+            if [[ ${STOP_MODE} != "none" ]]; then
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
                 data_status=$DATA_STATUS_SAVED
 
                 exec_docker_compose down
-                if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
+                if [[ ${STOP_MODE} == "purge-volumes" ]]; then
                     printf $COLOR_R'"purge-volumes" will clean all data produced by the project (Postgres, ElasticSearch, etc).\n'
                     printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read answer_to_purge
                     if [[ $answer_to_purge == "Y" ]]; then
