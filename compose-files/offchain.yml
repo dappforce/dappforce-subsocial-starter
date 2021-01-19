@@ -20,14 +20,14 @@ services:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
     container_name: $CONT_OFFCHAIN
     depends_on:
-      - postgres
-      - elasticsearch
+      - $SERVICE_POSTGRES
+      - $SERVICE_ELASTICSEARCH
     restart: on-failure
     command: $OFFCHAIN_CUSTOM_CMD
     environment:
       - NODE_ENV=production
       - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
-      - PGHOST=$POSTGRES_IP
+      - PGHOST=$SERVICE_POSTGRES
       - ES_NODE_URL=$ES_URL
       - ES_OFFCHAIN_USER=$ES_OFFCHAIN_USER
       - ES_OFFCHAIN_PASSWORD=$ES_OFFCHAIN_PASSWORD

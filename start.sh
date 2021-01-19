@@ -62,14 +62,28 @@ export IPFS_CLUSTER_IP=172.15.0.9
 export SUBSTRATE_RPC_IP=172.15.0.21
 export SUBSTRATE_VALIDATOR_IP=172.15.0.22
 
+# Docker services
+export SERVICE_POSTGRES=postgres
+export SERVICE_ELASTICSEARCH=elasticsearch
+export SERVICE_IPFS_CLUSTER=ipfs-cluster
+export SERVICE_IPFS_NODE=ipfs-node
+export SERVICE_OFFCHAIN=offchain
+export SERVICE_NODE_RPC=node-rpc
+export SERVICE_NODE_VALIDATOR=node-validator
+export SERVICE_WEBUI=web-ui
+export SERVICE_CADDY=proxy
+
 # URL variables
-export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
-export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
-export OFFCHAIN_WS=ws://127.0.0.1:3011
-export ES_URL=http://$ELASTICSEARCH_IP:9200
-export IPFS_CLUSTER_URL=http://$IPFS_CLUSTER_IP:9094
-export IPFS_NODE_URL=http://$IPFS_NODE_IP:5001
-export IPFS_READ_ONLY_NODE_URL=http://$IPFS_NODE_IP:8080
+export SUBSTRATE_RPC_URL=ws://${SERVICE_NODE_RPC}:9944
+export OFFCHAIN_URL=http://${SERVICE_OFFCHAIN}:3001
+export OFFCHAIN_WS=ws://localhost:3011
+export ES_URL=http://${SERVICE_ELASTICSEARCH}:9200
+export IPFS_CLUSTER_URL=http://${SERVICE_IPFS_CLUSTER}:9094
+export IPFS_NODE_URL=http://${SERVICE_IPFS_NODE}:5001
+export IPFS_READ_ONLY_NODE_URL=http://${SERVICE_IPFS_NODE}:8080
+
+ES_PORT=$(echo $ES_URL | cut -d \: -f 3)
+IPFS_NODE_PORT=$(echo $IPFS_READ_ONLY_NODE_URL | cut -d \: -f 3)
 
 # Docker container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
@@ -139,7 +153,7 @@ write_boostrap_peers(){
 }
 
 wait_for_ipfs_node(){
-    until curl -s ${IPFS_READ_ONLY_NODE_URL}/version > /dev/null; do
+    until curl -s "localhost:${IPFS_NODE_PORT}/version" > /dev/null; do
         sleep 1
     done
 }
@@ -681,7 +695,7 @@ while :; do
 
                 # ElasticSearch
                 printf "Waiting until ElasticSearch starts...\n"
-                until curl -s ${ES_URL} > /dev/null; do
+                until curl -s "localhost:$ES_PORT" > /dev/null; do
                     sleep 1
                 done
 
