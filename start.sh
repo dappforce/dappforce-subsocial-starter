@@ -80,7 +80,7 @@ export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
 export CONT_NODE_RPC=${PROJECT_NAME}-node-rpc
 export CONT_NODE_VALIDATOR=${PROJECT_NAME}-node-validator
 export CONT_WEBUI=${PROJECT_NAME}-web-ui
-export CONT_PROXY=${PROJECT_NAME}-proxy
+export CONT_CADDY=${PROJECT_NAME}-proxy
 
 # Docker-compose files list
 SUBSTRATE_RPC_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_rpc.yml"
