@@ -1,6 +1,5 @@
 version: "3.2"
 services:
-
   caddy:
     image: caddy/caddy
     container_name: $CONT_PROXY

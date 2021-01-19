@@ -1,4 +1,4 @@
-# NOTE: elasticsearch.yml and ipfs.yml must be included with this docker-compose file.
+# IMPORTANT: You should include elasticsearch.yml and ipfs.yml with this docker-compose file.
 
 version: "3.2"
 services:

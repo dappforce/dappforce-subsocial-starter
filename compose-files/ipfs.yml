@@ -1,6 +1,5 @@
 version: "3.2"
 services:
-
   ipfs-node:
     image: ipfs/go-ipfs:$IPFS_NODE_VERSION
     container_name: $CONT_IPFS_NODE
