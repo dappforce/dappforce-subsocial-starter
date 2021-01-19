@@ -11,7 +11,6 @@ services:
       discovery.type: "single-node"
       cluster.name: "subsocial-cluster"
       node.name: "subsocial-node"
-      network.host: "$ELASTICSEARCH_IP"
       xpack.security.enabled: "true"
       xpack.security.audit.enabled: "true"
       http.port: "9200"
