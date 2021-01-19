@@ -43,7 +43,7 @@ export SUBSTRATE_NODE_EXTRA_OPTS=""
 export OFFCHAIN_CORS="http://localhost"
 export OFFCHAIN_CUSTOM_CMD=""
 
-# Version variables
+# Docker images versions
 export POSTGRES_VERSION=12.4
 export ELASTICSEARCH_VERSION=7.4.1
 export IPFS_CLUSTER_VERSION=v0.13.0
@@ -52,7 +52,7 @@ export OFFCHAIN_VERSION=latest
 export NODE_VERSION=latest
 export WEBUI_VERSION=latest
 
-# Internal Docker IP variables
+# Docker internal IP addresses
 export WEBUI_DOCKER_IP=172.15.0.2
 export OFFCHAIN_IP=172.15.0.3
 export POSTGRES_IP=172.15.0.4
@@ -71,7 +71,7 @@ export IPFS_CLUSTER_URL=http://$IPFS_CLUSTER_IP:9094
 export IPFS_NODE_URL=http://$IPFS_NODE_IP:5001
 export IPFS_READ_ONLY_NODE_URL=http://$IPFS_NODE_IP:8080
 
-# Container names
+# Docker container names
 export CONT_POSTGRES=${PROJECT_NAME}-postgres
 export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
 export CONT_IPFS_CLUSTER=${PROJECT_NAME}-ipfs-cluster
@@ -82,7 +82,7 @@ export CONT_NODE_VALIDATOR=${PROJECT_NAME}-node-validator
 export CONT_WEBUI=${PROJECT_NAME}-web-ui
 export CONT_PROXY=${PROJECT_NAME}-proxy
 
-# Compose files list
+# Docker-compose files list
 SUBSTRATE_RPC_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_rpc.yml"
 SUBSTRATE_VALIDATOR_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_validator.yml"
 
