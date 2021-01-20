@@ -76,15 +76,19 @@ ES_PORT=$(echo $ES_URL | cut -d \: -f 3)
 IPFS_NODE_PORT=$(echo $IPFS_READ_ONLY_NODE_URL | cut -d \: -f 3)
 
 # Docker container names
-export CONT_POSTGRES=${PROJECT_NAME}-postgres
-export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
-export CONT_IPFS_CLUSTER=${PROJECT_NAME}-ipfs-cluster
-export CONT_IPFS_NODE=${PROJECT_NAME}-ipfs-node
-export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
-export CONT_NODE_RPC=${PROJECT_NAME}-node-rpc
-export CONT_NODE_VALIDATOR=${PROJECT_NAME}-node-validator
-export CONT_WEBUI=${PROJECT_NAME}-web-ui
-export CONT_CADDY=${PROJECT_NAME}-proxy
+export_container_names(){
+    export CONT_POSTGRES=${PROJECT_NAME}-postgres
+    export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
+    export CONT_IPFS_CLUSTER=${PROJECT_NAME}-ipfs-cluster
+    export CONT_IPFS_NODE=${PROJECT_NAME}-ipfs-node
+    export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
+    export CONT_NODE_RPC=${PROJECT_NAME}-node-rpc
+    export CONT_NODE_VALIDATOR=${PROJECT_NAME}-node-validator
+    export CONT_WEBUI=${PROJECT_NAME}-web-ui
+    export CONT_CADDY=${PROJECT_NAME}-proxy
+}
+
+export_container_names
 
 # Docker external volumes
 export IPFS_NODE_STAGING=${EXTERNAL_VOLUME}/ipfs-${PROJECT_NAME}/daemon/staging
@@ -298,6 +302,16 @@ while :; do
                 export NODE_VERSION=$2
                 export WEBUI_VERSION=$2
                 printf $COLOR_Y'Switched to components by tag '$2'\n\n'$COLOR_RESET
+                shift
+            fi
+            ;;
+
+        # Start another instance of this project
+        --instance)
+            if [[ -n $2 ]] && [[ $2 =~ [a-zA-Z]{0,16} ]]; then
+                PROJECT_NAME=$2
+                export_container_names
+
                 shift
             fi
             ;;
