@@ -509,7 +509,7 @@ while :; do
         #################################################
 
         --cluster-id)
-            docker exec subsocial-ipfs-cluster ipfs-cluster-ctl id
+            docker exec $CONT_IPFS_CLUSTER ipfs-cluster-ctl id
             break
             ;;
 
@@ -686,7 +686,7 @@ while :; do
                 # TODO: check whether it's the first start of ElasticSearch instead
                 if [[ ! -f $ELASTIC_PASSWORDS_PATH ]]; then
                     printf "Generating passwords for ElasticSearch...\n"
-                    docker exec -t subsocial-elasticsearch bin/elasticsearch-setup-passwords auto -b \
+                    docker exec -t $CONT_ELASTICSEARCH bin/elasticsearch-setup-passwords auto -b \
                     | grep -wi 'password.*=' > $ELASTIC_PASSWORDS_PATH
                     printf "ES passwords are successfully saved to ${ELASTIC_PASSWORDS_PATH}\n\n"
 
