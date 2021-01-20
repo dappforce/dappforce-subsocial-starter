@@ -19,9 +19,6 @@ services:
     ports:
       - "9944:9944"
       - "30333:30333"
-    networks:
-      backend:
-        ipv4_address: $SUBSTRATE_RPC_IP
 
 volumes:
   node_rpc_data:

@@ -11,9 +11,6 @@ services:
       - "8080:8080"
       - "5001:5001"
       - "4001:4001"
-    networks:
-      backend:
-        ipv4_address: $IPFS_NODE_IP
 
   ipfs-cluster:
     image: ipfs/ipfs-cluster:$IPFS_CLUSTER_VERSION
@@ -35,6 +32,3 @@ services:
       - "9096:9096"
     volumes:
       - ${CLUSTER_CONFIG_FOLDER}:/data/ipfs-cluster
-    networks:
-      backend:
-        ipv4_address: $IPFS_CLUSTER_IP

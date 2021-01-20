@@ -22,9 +22,6 @@ services:
       - es_data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
-    networks:
-      backend:
-        ipv4_address: $ELASTICSEARCH_IP
     healthcheck:
       test: curl -s $ES_URL
       interval: 10s

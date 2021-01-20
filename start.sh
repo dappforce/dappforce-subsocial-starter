@@ -52,16 +52,6 @@ export OFFCHAIN_VERSION=latest
 export NODE_VERSION=latest
 export WEBUI_VERSION=latest
 
-# Docker internal IP addresses
-export WEBUI_DOCKER_IP=172.15.0.2
-export OFFCHAIN_IP=172.15.0.3
-export POSTGRES_IP=172.15.0.4
-export ELASTICSEARCH_IP=172.15.0.5
-export IPFS_NODE_IP=172.15.0.8
-export IPFS_CLUSTER_IP=172.15.0.9
-export SUBSTRATE_RPC_IP=172.15.0.21
-export SUBSTRATE_VALIDATOR_IP=172.15.0.22
-
 # Docker services
 export SERVICE_POSTGRES=postgres
 export SERVICE_ELASTICSEARCH=elasticsearch
@@ -108,7 +98,6 @@ SUBSTRATE_VALIDATOR_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_validator.ym
 SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
 
 COMPOSE_FILES=""
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
@@ -358,7 +347,6 @@ while :; do
 
         --only-offchain)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
@@ -367,21 +355,18 @@ while :; do
 
         --only-elastic)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
             printf $COLOR_Y'Starting ElasticSearch only...\n\n'$COLOR_RESET
             ;;
 
         --only-substrate)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=${SELECTED_SUBSTRATE}
             printf $COLOR_Y'Starting only Substrate...\n\n'$COLOR_RESET
             ;;
 
         --only-webui)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
             printf $COLOR_Y'Starting only Web UI...\n\n'$COLOR_RESET
             ;;
@@ -394,7 +379,6 @@ while :; do
 
         --only-ipfs)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
             COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
             printf $COLOR_Y'Starting only IPFS cluster...\n\n'$COLOR_RESET
             ;;

@@ -17,9 +17,6 @@ services:
     ports:
       - "127.0.0.1:9933:9933"
       - "30334:30334"
-    networks:
-      backend:
-        ipv4_address: $SUBSTRATE_VALIDATOR_IP
 
 volumes:
   node_validator_data:

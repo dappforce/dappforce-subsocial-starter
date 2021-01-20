@@ -12,9 +12,6 @@ services:
       POSTGRES_PASSWORD: 1986
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      backend:
-        ipv4_address: $POSTGRES_IP
 
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
@@ -42,9 +39,6 @@ services:
     ports:
       - "3001:3001"
       - "3011:3011"
-    networks:
-      backend:
-        ipv4_address: $OFFCHAIN_IP
 
 volumes:
   postgres_data:

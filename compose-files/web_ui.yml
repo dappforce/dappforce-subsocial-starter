@@ -13,6 +13,3 @@ services:
       - IPFS_URL=$IPFS_READ_ONLY_NODE_URL
     ports:
       - "3003:3003"
-    networks:
-      backend:
-        ipv4_address: $WEBUI_DOCKER_IP
