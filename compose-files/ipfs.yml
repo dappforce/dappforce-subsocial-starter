@@ -5,12 +5,12 @@ services:
     container_name: $CONT_IPFS_NODE
     restart: on-failure
     volumes:
-      - ${IPFS_NODE_STAGING}:/export
-      - ${IPFS_NODE_DATA}:/data/ipfs
+      - $IPFS_NODE_STAGING:/export
+      - $IPFS_NODE_DATA:/data/ipfs
     ports:
-      - "8080:8080"
-      - "5001:5001"
-      - "4001:4001"
+      - "$IPFS_READONLY_PORT:$IPFS_READONLY_PORT"
+      - "$IPFS_NODE_PORT:$IPFS_NODE_PORT"
+      - "$IPFS_SWARM_PORT:$IPFS_SWARM_PORT"
 
   ipfs-cluster:
     image: ipfs/ipfs-cluster:$IPFS_CLUSTER_VERSION
@@ -28,7 +28,7 @@ services:
       CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS: /ip4/0.0.0.0/tcp/9094 # Expose API
       CLUSTER_MONITORPINGINTERVAL: 1m # Peer discovery interval
     ports:
-      - "9094:9094"
-      - "9096:9096"
+      - "$IPFS_CLUSTER_API_PORT:$IPFS_CLUSTER_API_PORT"
+      - "$IPFS_CLUSTER_TCP_PORT:$IPFS_CLUSTER_TCP_PORT"
     volumes:
-      - ${CLUSTER_CONFIG_FOLDER}:/data/ipfs-cluster
+      - $CLUSTER_CONFIG_FOLDER:/data/ipfs-cluster

@@ -63,17 +63,41 @@ export SERVICE_NODE_VALIDATOR=node-validator
 export SERVICE_WEBUI=web-ui
 export SERVICE_CADDY=proxy
 
-# URL variables
-export SUBSTRATE_RPC_URL=ws://${SERVICE_NODE_RPC}:9944
-export OFFCHAIN_URL=http://${SERVICE_OFFCHAIN}:3001
-export OFFCHAIN_WS=ws://localhost:3011
-export ES_URL=http://${SERVICE_ELASTICSEARCH}:9200
-export IPFS_CLUSTER_URL=http://${SERVICE_IPFS_CLUSTER}:9094
-export IPFS_NODE_URL=http://${SERVICE_IPFS_NODE}:5001
-export IPFS_READ_ONLY_NODE_URL=http://${SERVICE_IPFS_NODE}:8080
+# Docker container ports
+export_container_ports(){
+    export SUBSTRATE_WS_PORT=9944
+    export SUBSTRATE_RPC_PORT=9933
+    export SUBSTRATE_TCP_PORT=30333
+    export SUBSTRATE_VALIDATOR_RPC_PORT=9934
+    export SUBSTRATE_VALIDATOR_TCP_PORT=30334
 
-ES_PORT=$(echo $ES_URL | cut -d \: -f 3)
-IPFS_NODE_PORT=$(echo $IPFS_READ_ONLY_NODE_URL | cut -d \: -f 3)
+    export ES_PORT=9200
+
+    export IPFS_READONLY_PORT=8080
+    export IPFS_NODE_PORT=5001
+    export IPFS_SWARM_PORT=4001
+
+    export IPFS_CLUSTER_API_PORT=9094
+    export IPFS_CLUSTER_TCP_PORT=9096
+
+    export OFFCHAIN_API_PORT=3001
+    export OFFCHAIN_WS_PORT=3011
+
+    export WEB_UI_PORT=3003
+}
+export_container_ports
+
+# URL variables
+export_container_urls(){
+    export SUBSTRATE_RPC_URL=ws://$SERVICE_NODE_RPC:$SUBSTRATE_WS_PORT
+    export OFFCHAIN_URL=http://$SERVICE_OFFCHAIN:$OFFCHAIN_API_PORT
+    export OFFCHAIN_WS=ws://$SERVICE_OFFCHAIN:$OFFCHAIN_WS_PORT
+    export ES_URL=http://$SERVICE_ELASTICSEARCH:$ES_PORT
+    export IPFS_CLUSTER_URL=http://$SERVICE_IPFS_CLUSTER:$IPFS_CLUSTER_API_PORT
+    export IPFS_NODE_URL=http://$SERVICE_IPFS_NODE:$IPFS_NODE_PORT
+    export IPFS_READ_ONLY_NODE_URL=http://$SERVICE_IPFS_NODE:$IPFS_READONLY_PORT
+}
+export_container_urls
 
 # Docker container names
 export_container_names(){
@@ -87,7 +111,6 @@ export_container_names(){
     export CONT_WEBUI=${PROJECT_NAME}-web-ui
     export CONT_CADDY=${PROJECT_NAME}-proxy
 }
-
 export_container_names
 
 # Docker external volumes

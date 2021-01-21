@@ -9,14 +9,14 @@ services:
     command: subsocial-node
       --db-cache 2048
       --validator
-      --port 30334
-      --rpc-port 9933
+      --port $SUBSTRATE_VALIDATOR_TCP_PORT
+      --rpc-port $SUBSTRATE_VALIDATOR_RPC_PORT
       $SUBSTRATE_NODE_EXTRA_OPTS
     volumes:
       - node_validator_data:/data
     ports:
-      - "127.0.0.1:9933:9933"
-      - "30334:30334"
+      - "127.0.0.1:$SUBSTRATE_VALIDATOR_RPC_PORT:$SUBSTRATE_VALIDATOR_RPC_PORT"
+      - "$SUBSTRATE_VALIDATOR_TCP_PORT:$SUBSTRATE_VALIDATOR_TCP_PORT"
 
 volumes:
   node_validator_data:

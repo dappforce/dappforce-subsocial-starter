@@ -35,10 +35,10 @@ services:
       - IPFS_CLUSTER_URL=$IPFS_CLUSTER_URL
       - CORS_ALLOWED_ORIGIN=$OFFCHAIN_CORS
     volumes:
-      - ${OFFCHAIN_STATE}:/app/build/state
+      - $OFFCHAIN_STATE:/app/build/state
     ports:
-      - "3001:3001"
-      - "3011:3011"
+      - "$OFFCHAIN_API_PORT:3001"
+      - "$OFFCHAIN_WS_PORT:3011"
 
 volumes:
   postgres_data:
