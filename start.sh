@@ -25,12 +25,13 @@ export CLUSTER_SECRET=""
 # Other IPFS Cluster variables
 export CLUSTER_PEERNAME="Subsocial Cluster"
 export CLUSTER_BOOTSTRAP=""
-export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
+export CLUSTER_CONFIG_FOLDER="$EXTERNAL_VOLUME/ipfs/cluster"
 CLUSTER_CONFIG_PATH=$CLUSTER_CONFIG_FOLDER/service.json
 export IPFS_CLUSTER_CONSENSUS="crdt"
 
 # ElasticSearch related variables
-ELASTIC_PASSWORDS_PATH=${EXTERNAL_VOLUME}/es_passwords
+OLD_ELASTIC_PASSWORDS_PATH=$EXTERNAL_VOLUME/es_passwords
+ELASTIC_PASSWORDS_PATH=$EXTERNAL_VOLUME/es-passwords-$PROJECT_NAME
 export ES_READONLY_USER="readonly"
 export ES_READONLY_PASSWORD=""
 export ES_OFFCHAIN_USER="offchain"
@@ -158,7 +159,7 @@ write_boostrap_peers(){
         if [[ -z $1 ]]; then
             break
         else
-            printf $1'\n'
+            printf "%s\n" "$1"
             local temp_file_name=tmp.$$.json
             local new_trusted_peers_query=".cluster.peer_addresses += [$1]"
             jq "$new_trusted_peers_query" $CLUSTER_CONFIG_PATH > $temp_file_name
@@ -177,9 +178,9 @@ wait_for_ipfs_node(){
 stop_container() {
     local cont_name=""
 
-    [[ -z $1 ]] || [[ ! -z $2 ]] \
+    [[ -z $1 ]] || [[ -n $2 ]] \
         && printf $COLOR_R"FATAL: 'stop_container' command must be provided with one argument" \
-        && exit -1
+        && exit 1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
         && docker container stop ${CONT_OFFCHAIN} > /dev/null
@@ -188,7 +189,7 @@ stop_container() {
         [[ $1 == ipfs-cluster ]] && cont_name=$CONT_IPFS_CLUSTER
         [[ $1 == ipfs-node ]] && cont_name=$CONT_IPFS_NODE
 
-        [[ ! -z $cont_name ]] && docker container stop $cont_name > /dev/null \
+        [[ -n $cont_name ]] && docker container stop $cont_name > /dev/null \
             || echo "nothing to stop" > /dev/null
     fi
 }
@@ -199,8 +200,8 @@ stop_container() {
 start_container(){
     local cont_name
 
-    [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'start_container' command must be provided with one argument" && exit -1
+    [[ -z $1 ]] || [[ -n $2 ]] \
+        && printf $COLOR_R"FATAL: 'start_container' command must be provided with one argument" && exit 1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
         && cont_name=${CONT_OFFCHAIN}
@@ -213,10 +214,10 @@ start_container(){
     local is_running=$(docker ps | grep -wi "${cont_name}")
     local exists=$(docker ps -a | grep -wi "${cont_name}")
     if [[ -z $exists ]]; then
-        printf $COLOR_R"ERROR: container ${cont_name} doesn't exist\n"
+        printf $COLOR_R"ERROR: container %s doesn't exist\n" "$cont_name"
         exit 1
     else
-        [[ -z $is_running ]] && [[ ! -z $cont_name ]] \
+        [[ -z $is_running ]] && [[ -n $cont_name ]] \
             && docker container start $cont_name > /dev/null
     fi
 }
@@ -224,8 +225,8 @@ start_container(){
 recreate_container(){
     local recreate_allowed=""
 
-    [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'recreate_container' command must be provided with one argument" && exit -1
+    [[ -z $1 ]] || [[ -n $2 ]] \
+        && printf $COLOR_R"FATAL: 'recreate_container' command must be provided with one argument" && exit 1
 
     [[ $1 == offchain && $COMPOSE_FILES =~ 'offchain' ]] \
         && recreate_allowed="true"
@@ -234,7 +235,7 @@ recreate_container(){
         && recreate_allowed="true"
 
     if [[ -z $recreate_allowed ]]; then
-        printf $COLOR_R"ERROR: $1 cannot be restarted before corresponding service included"
+        printf $COLOR_R"ERROR: %s cannot be restarted before corresponding service included" "$1"
         exit 1
     else
         exec_docker_compose up -d $1
@@ -263,8 +264,10 @@ create_subsocial_elastic_users(){
 }
 
 resolve_subsocial_elastic_passwords(){
-    ES_OFFCHAIN_PASSWORD=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi "$ES_OFFCHAIN_USER" | cut -d "=" -f2- | tr -d '[:space:]')
-    ES_READONLY_PASSWORD=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi "$ES_READONLY_USER" | cut -d "=" -f2- | tr -d '[:space:]')
+    [[ -f $OLD_ELASTIC_PASSWORDS_PATH ]] && mv $OLD_ELASTIC_PASSWORDS_PATH $ELASTIC_PASSWORDS_PATH
+
+    ES_OFFCHAIN_PASSWORD=$(cat $ELASTIC_PASSWORDS_PATH | grep -wi "$ES_OFFCHAIN_USER" | cut -d "=" -f2- | tr -d '[:space:]')
+    ES_READONLY_PASSWORD=$(cat $ELASTIC_PASSWORDS_PATH | grep -wi "$ES_READONLY_USER" | cut -d "=" -f2- | tr -d '[:space:]')
     printf 'ElasticSearch passwords are set to offchain container\n\n'
 }
 
@@ -599,12 +602,12 @@ while :; do
         --cluster-peers)
             test_jq_installation
 
-            if [[ -z '$2' ]] || [[ -z '$3' ]]; then
+            if [[ -z "$2" ]] || [[ -z "$3" ]]; then
                 printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) and URI(s) JSON array\n' >&2
-                printf "Example of rewriting peers: "$COLOR_RESET"--cluster-peers override '[\"*\"]'\n" >&2
-                printf $COLOR_R"Example of adding a peer: "$COLOR_RESET"--cluster-peers add '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
-                printf $COLOR_R"Example of removing a peer: "$COLOR_RESET"--cluster-peers remove '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
-                printf $COLOR_R"\nWhere "$COLOR_RESET"\"Peer URI\""$COLOR_R" looks like: "$COLOR_RESET"/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V\n" >&2
+                printf "Example of rewriting peers: $COLOR_RESET--cluster-peers override '[\"*\"]'\n" >&2
+                printf $COLOR_R"Example of adding a peer: $COLOR_RESET--cluster-peers add '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
+                printf $COLOR_R"Example of removing a peer: $COLOR_RESET--cluster-peers remove '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
+                printf $COLOR_R"\nWhere $COLOR_RESET\"Peer URI\"$COLOR_R looks like: $COLOR_RESET/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V\n" >&2
                 break
             fi
 
@@ -697,10 +700,10 @@ while :; do
                     fi
                 fi
 
-                printf "\nProject stopped successfully $data_status\n"
+                printf "\nProject stopped successfully %s\n" "$data_status"
                 printf $COLOR_RESET'\nNon empty Docker volumes:\n'
                 docker volume ls
-                [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '$EXTERNAL_VOLUME'\n"
+                [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '%s'\n" "$EXTERNAL_VOLUME"
                 break
             fi
 
@@ -725,7 +728,7 @@ while :; do
                     printf "Generating passwords for ElasticSearch...\n"
                     docker exec -t $CONT_ELASTICSEARCH bin/elasticsearch-setup-passwords auto -b \
                     | grep -wi 'password.*=' > $ELASTIC_PASSWORDS_PATH
-                    printf "ES passwords are successfully saved to ${ELASTIC_PASSWORDS_PATH}\n\n"
+                    printf "ES passwords are successfully saved to %s\n\n" "$ELASTIC_PASSWORDS_PATH"
 
                     create_subsocial_elastic_users
                 fi
@@ -750,7 +753,7 @@ while :; do
                 wait_for_ipfs_node
 
                 printf "Setting up IPFS cluster...\n"
-                [[ ! -z $CLUSTER_BOOTSTRAP ]] && write_boostrap_peers $CLUSTER_BOOTSTRAP
+                [[ -n $CLUSTER_BOOTSTRAP ]] && write_boostrap_peers $CLUSTER_BOOTSTRAP
                 start_container ipfs-cluster
             fi
 
