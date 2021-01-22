@@ -49,7 +49,7 @@ export ELASTICSEARCH_VERSION=7.4.1
 export IPFS_CLUSTER_VERSION=v0.13.0
 export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
-export NODE_VERSION=latest
+export SUBSTRATE_NODE_VERSION=latest
 export WEBUI_VERSION=latest
 
 # Docker services
@@ -322,7 +322,7 @@ while :; do
                 break
             else
                 export OFFCHAIN_VERSION=$2
-                export NODE_VERSION=$2
+                export SUBSTRATE_NODE_VERSION=$2
                 export WEBUI_VERSION=$2
                 printf $COLOR_Y'Switched to components by tag '$2'\n\n'$COLOR_RESET
                 shift
