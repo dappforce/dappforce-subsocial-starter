@@ -7,6 +7,7 @@ services:
       subsocial:subsocial
     restart: on-failure
     command: subsocial-node
+      --wasm-execution Compiled
       --db-cache 1024
       --rpc-cors "*"
       --ws-port $SUBSTRATE_WS_PORT
