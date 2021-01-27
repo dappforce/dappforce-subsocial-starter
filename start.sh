@@ -25,8 +25,6 @@ export CLUSTER_SECRET=""
 # Other IPFS Cluster variables
 export CLUSTER_PEERNAME="Subsocial Cluster"
 export CLUSTER_BOOTSTRAP=""
-export CLUSTER_CONFIG_FOLDER="$EXTERNAL_VOLUME/ipfs/cluster"
-CLUSTER_CONFIG_PATH=$CLUSTER_CONFIG_FOLDER/service.json
 export IPFS_CLUSTER_CONSENSUS="crdt"
 
 # ElasticSearch related variables
@@ -62,7 +60,7 @@ export SERVICE_OFFCHAIN=offchain
 export SERVICE_NODE_RPC=node-rpc
 export SERVICE_NODE_VALIDATOR=node-validator
 export SERVICE_WEBUI=web-ui
-export SERVICE_CADDY=proxy
+export SERVICE_CADDY=caddy
 
 # Docker container ports
 export_container_ports(){
@@ -116,7 +114,9 @@ export_container_names
 
 # Docker external volumes
 export IPFS_NODE_STAGING=${EXTERNAL_VOLUME}/ipfs-${PROJECT_NAME}/daemon/staging
-export IPFS_NODE_DATA=${EXTERNAL_VOLUME}/ipfs-${PROJECT_NAME}/daemon/data
+export IPFS_NODE_DATA=${EXTERNAL_VOLUME}/ipfs/daemon/data
+export CLUSTER_CONFIG_FOLDER=$EXTERNAL_VOLUME/ipfs/cluster
+CLUSTER_CONFIG_PATH=$CLUSTER_CONFIG_FOLDER/service.json
 export OFFCHAIN_STATE=${EXTERNAL_VOLUME}/offchain-state-${PROJECT_NAME}
 
 # Docker-compose files list
