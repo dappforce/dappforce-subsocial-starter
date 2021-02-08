@@ -23,7 +23,7 @@ Test that Docker was installed correctly, try to run the following commands:
 ```
 docker images
 docker ps
-docker run --rm -it -p 80:80 nginx
+docker run --rm -it alpine cat /etc/os-release
 ```
 
 ### Possible issues on Linux
@@ -217,20 +217,17 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--no-offchain`                    | Start Subsocial stack without Offchain storage and ElasticSearch. |
 | `--no-substrate`                   | Start Subsocial stack without Substrate node.                 |
 | `--no-webui`                       | Start Subsocial stack without Web UI.                         |
-| `--no-apps`                        | Start Subsocial stack without Blockchain Explorer             |
-| `--no-proxy`                       | Start Subsocial stack without Nginx proxy.                    |
+| `--no-proxy`                       | Start Subsocial stack without Caddy server proxy.             |
 | `--no-ipfs`                        | Start Subsocial stack without IPFS Cluster.                   |
 | `--only-offchain`                  | Start (or update) only Offchain container.                    |
 | `--only-substrate`                 | Start (or update) only Substrate node's container.            |
 | `--only-webui`                     | Start (or update) only Web UI container.                      |
-| `--only-apps`                      | Start (or update) only Blockchain Explorer container.         |
-| `--only-proxy`                     | Start (or update) only Nginx proxy container.                 |
+| `--only-proxy`                     | Start (or update) only Caddy server proxy container.          |
 | `--only-ipfs`                      | Start (or update) only IPFS Cluster container.                |
 | `--substrate-url`                  | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944` |
 | `--offchain-url`                   | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001` |
 | `--elastic-url`                    | Specify ElasticSearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200` |
 | `--webui-ip`                       | Specify Web UI IP address. Example: `./start.sh --global --substrate-url http://172.15.0.2` |
-| `--apps-url`                       | Specify Blockchain Explorer URL. Example: `./start.sh --global --apps-url http://172.15.0.6:3002` |
 | `--ipfs-ip <readonly/cluster/all>` | Specify custom IPFS IP for IPFS Gateway (readonly), IPFS Cluster or both. |
 | `--substrate-extra-opts`           | Start Substrate node with additional Substrate CLI options. Example: `./start.sh --substrate-extra-opts "--dev --name my-subsocial-node"` |
 | `--substrate-mode <rpc/validator>` | Start Substrate in a specified mode (`rpc` or `validator`). By default (when isn't specified) starts both nodes RPC and Authority (validator). |
@@ -241,11 +238,12 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--cluster-secret`                 | Specify IPFS Cluster secret if consensus is RAFT. Cluster secret must be equal across all cluster nodes. |
 | `--cluster-peername`               | Specify IPFS Cluster peer name. Each Cluster node must have its own unique peer name. |
 | `--offchain-cors`                  | Specify Offchain CORS (from what URL or IP it will be accessible). Example: `./start.sh --only-offchain --offchain-cors "https://mydomain.com"` |
+| `--offchain-cmd`                  | Override default startup command for offchain image. Example: `./start.sh --only-offchain --offchain-cmd "yarn api"` |
 
-### Nginx proxy for web apps
+### Caddy server proxy for Web UI
 
-By default the project will start one Nginx container with automatically configured proxy.
-If it is running, you can open the **[Web UI](#web-ui)** or **[Blockchain Explorer](#blockchain-explorer)**.
+By default the project will start one Caddy server container with automatically configured proxy.
+If it is running, you can open the **[Web UI](#web-ui)** on the default HTTP port.
 
 | Container name    | External Port | Local URL | Description |
 | ----------------- | ------------- | --------- | ----------- |
@@ -263,19 +261,6 @@ This can be managed with `--no-webui` and `--only-webui` options.
 | Container name     | External port | Local URL                             | Description                                    |
 | ------------------ | ------------- | ------------------------------------- | ---------------------------------------------- |
 | `subsocial-web-ui` |               | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui) |
-
-### Blockchain Explorer
-
-By default the project will start one container for Blockchain Explorer (a fork of [Polkadot.js Apps](https://github.com/polkadot-js/apps)).
-If it is running, you can navigate to it from **"Advanced"** tab in the Web UI side-menu:
-
-[http://localhost/bc](http://localhost/bc)
-
-This can be managed with `--no-apps` and `--only-apps` options.
-
-| Container name   | External Port | Local URL           | Description                                                  |
-| ---------------- | ------------- | ------------------- | ------------------------------------------------------------ |
-| `subsocial-apps` |               | http://localhost/bc | [Subsocial Apps](https://github.com/dappforce/dappforce-subsocial-apps) |
 
 ## License
 
