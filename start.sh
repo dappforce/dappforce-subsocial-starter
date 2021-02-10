@@ -749,8 +749,8 @@ while :; do
                 exec_docker_compose down
                 if [[ $STOP_MODE == "--clean-data" ]]; then
                     printf $COLOR_R'"clean-data" will clean all data produced by the project (Postgres, ElasticSearch, etc).\n'
-                    printf $COLOR_R'Note that IPFS data will not be removed. You can do this manually.\n'
-                    printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read -r answer_to_purge
+                    printf $COLOR_RESET"Note that IPFS data ${COLOR_Y}will not$COLOR_RESET be removed. You can do this manually.\n"
+                    printf $COLOR_R'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read -r answer_to_purge
                     if [[ $answer_to_purge == "Y" ]]; then
                         docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES down -v 2> /dev/null || true
 
@@ -773,7 +773,14 @@ while :; do
             [[ $FORCEPULL = "true" ]] && exec_docker_compose pull
             exec_docker_compose up -d
 
-            [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
+            if [[ $COMPOSE_FILES =~ 'offchain' ]]; then
+                if [[ ! -f "$DIR/.env" ]]; then
+                    printf $COLOR_R"Error: you must specify environmental variables for offchain\n"
+                    exec_docker_compose down > /dev/null
+                    exit 1
+                fi
+                printf "\nHold on, starting Offchain:\n\n"
+            fi
 
             if [[ $COMPOSE_FILES =~ 'elasticsearch' ]]; then
                 stop_container offchain

@@ -239,6 +239,7 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--cluster-peername`               | Specify IPFS Cluster peer name. Each Cluster node must have its own unique peer name. |
 | `--offchain-cors`                  | Specify Offchain CORS (from what URL or IP it will be accessible). Example: `./start.sh --only-offchain --offchain-cors "https://mydomain.com"` |
 | `--offchain-cmd`                   | Override default startup command for offchain image. Example: `./start.sh --only-offchain --offchain-cmd "yarn api"` |
+| `--show-ports`                     | Show ports of the current instance. Example: `./start.sh --instance backup --show-ports` |
 
 ### Caddy server proxy for Web UI
 
