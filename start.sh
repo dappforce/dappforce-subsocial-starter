@@ -773,7 +773,14 @@ while :; do
             [[ $FORCEPULL = "true" ]] && exec_docker_compose pull
             exec_docker_compose up -d
 
-            [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
+            if [[ $COMPOSE_FILES =~ 'offchain' ]]; then
+                if [[ ! -f "$DIR/.env" ]]; then
+                    printf $COLOR_R"Error: you must specify environmental variables for offchain\n"
+                    exec_docker_compose down > /dev/null
+                    exit 1
+                fi
+                printf "\nHold on, starting Offchain:\n\n"
+            fi
 
             if [[ $COMPOSE_FILES =~ 'elasticsearch' ]]; then
                 stop_container offchain
