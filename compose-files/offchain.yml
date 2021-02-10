@@ -1,5 +1,3 @@
-# IMPORTANT: You should include elasticsearch.yml and ipfs.yml with this docker-compose file.
-
 version: "3.2"
 services:
   postgres:
@@ -16,9 +14,6 @@ services:
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
     container_name: $CONT_OFFCHAIN
-    depends_on:
-      - $SERVICE_POSTGRES
-      - $SERVICE_ELASTICSEARCH
     restart: on-failure
     command: $OFFCHAIN_CUSTOM_CMD
     environment:
