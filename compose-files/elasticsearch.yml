@@ -11,10 +11,9 @@ services:
       discovery.type: "single-node"
       cluster.name: "subsocial-cluster"
       node.name: "subsocial-node"
-      network.host: "$ELASTICSEARCH_IP"
       xpack.security.enabled: "true"
       xpack.security.audit.enabled: "true"
-      http.port: "9200"
+      http.port: "$ES_PORT"
       http.cors.enabled: "true"
       http.cors.allow-credentials: "true"
       http.cors.allow-origin: "$WEBUI_URL,https://dejavu.appbase.io"
@@ -22,10 +21,7 @@ services:
     volumes:
       - es_data:/usr/share/elasticsearch/data
     ports:
-      - "9200:9200"
-    networks:
-      backend:
-        ipv4_address: $ELASTICSEARCH_IP
+      - "$ES_PORT:$ES_PORT"
     healthcheck:
       test: curl -s $ES_URL
       interval: 10s

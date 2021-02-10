@@ -1,5 +1,3 @@
-# NOTE: elasticsearch.yml and ipfs.yml must be included with this docker-compose file.
-
 version: "3.2"
 services:
   postgres:
@@ -12,22 +10,16 @@ services:
       POSTGRES_PASSWORD: 1986
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      backend:
-        ipv4_address: $POSTGRES_IP
 
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
     container_name: $CONT_OFFCHAIN
-    depends_on:
-      - postgres
-      - elasticsearch
     restart: on-failure
     command: $OFFCHAIN_CUSTOM_CMD
     environment:
       - NODE_ENV=production
       - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
-      - PGHOST=$POSTGRES_IP
+      - PGHOST=$SERVICE_POSTGRES
       - ES_NODE_URL=$ES_URL
       - ES_OFFCHAIN_USER=$ES_OFFCHAIN_USER
       - ES_OFFCHAIN_PASSWORD=$ES_OFFCHAIN_PASSWORD
@@ -38,13 +30,10 @@ services:
       - IPFS_CLUSTER_URL=$IPFS_CLUSTER_URL
       - CORS_ALLOWED_ORIGIN=$OFFCHAIN_CORS
     volumes:
-      - $EXTERNAL_VOLUME/offchain_state:/app/build/state
+      - $OFFCHAIN_STATE:/app/build/state
     ports:
-      - "3001:3001"
-      - "3011:3011"
-    networks:
-      backend:
-        ipv4_address: $OFFCHAIN_IP
+      - "$OFFCHAIN_API_PORT:3001"
+      - "$OFFCHAIN_WS_PORT:3011"
 
 volumes:
   postgres_data:

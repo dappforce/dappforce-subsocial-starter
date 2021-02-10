@@ -1,41 +1,34 @@
 version: "3.2"
 services:
-
   ipfs-node:
     image: ipfs/go-ipfs:$IPFS_NODE_VERSION
     container_name: $CONT_IPFS_NODE
     restart: on-failure
     volumes:
-      - $EXTERNAL_VOLUME/ipfs/daemon/staging:/export
-      - $EXTERNAL_VOLUME/ipfs/daemon/data:/data/ipfs
+      - $IPFS_NODE_STAGING:/export
+      - $IPFS_NODE_DATA:/data/ipfs
     ports:
-      - "8080:8080"
-      - "5001:5001"
-      - "4001:4001"
-    networks:
-      backend:
-        ipv4_address: $IPFS_NODE_IP
+      - "$IPFS_READONLY_PORT:$IPFS_READONLY_PORT"
+      - "$IPFS_NODE_PORT:$IPFS_NODE_PORT"
+      - "$IPFS_SWARM_PORT:$IPFS_SWARM_PORT"
 
   ipfs-cluster:
     image: ipfs/ipfs-cluster:$IPFS_CLUSTER_VERSION
     container_name: $CONT_IPFS_CLUSTER
     restart: on-failure
     depends_on:
-      - ipfs-node
+      - $SERVICE_IPFS_NODE
     environment:
-      CLUSTER_PEERNAME: ${CLUSTER_PEERNAME}
-      IPFS_CLUSTER_CONSENSUS: ${IPFS_CLUSTER_CONSENSUS}
-      CLUSTER_SECRET: ${CLUSTER_SECRET} # From shell variable if set
-      CLUSTER_IPFSHTTP_NODEMULTIADDRESS: /dns4/ipfs-node/tcp/5001
+      CLUSTER_PEERNAME: $CLUSTER_PEERNAME
+      IPFS_CLUSTER_CONSENSUS: $IPFS_CLUSTER_CONSENSUS
+      CLUSTER_SECRET: $CLUSTER_SECRET # From shell variable if set
+      CLUSTER_IPFSHTTP_NODEMULTIADDRESS: /dns4/${SERVICE_IPFS_NODE}/tcp/5001
       CLUSTER_CRDT_TRUSTEDPEERS: '' # Trust none by default
       CLUSTER_RESTAPI_CORSALLOWEDORIGINS: '${OFFCHAIN_URL}'
       CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS: /ip4/0.0.0.0/tcp/9094 # Expose API
       CLUSTER_MONITORPINGINTERVAL: 1m # Peer discovery interval
     ports:
-      - "9094:9094"
-      - "9096:9096"
+      - "$IPFS_CLUSTER_API_PORT:$IPFS_CLUSTER_API_PORT"
+      - "$IPFS_CLUSTER_TCP_PORT:$IPFS_CLUSTER_TCP_PORT"
     volumes:
       - $CLUSTER_CONFIG_FOLDER:/data/ipfs-cluster
-    networks:
-      backend:
-        ipv4_address: $IPFS_CLUSTER_IP

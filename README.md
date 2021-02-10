@@ -105,7 +105,7 @@ To stop Substrate nodes:
 If you want not only stop containers, but also clean data, go with:
 
 ```
-./start.sh --only-substrate --stop purge-volumes
+./start.sh --only-substrate --stop --clean-data
 ```
 
 ### Offchain services
@@ -210,10 +210,10 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 
 | Option                             | Description                                                  |
 | ---------------------------------- | ------------------------------------------------------------ |
-| `--global`                         | Binds the project parts to global IP visible on [ifconfig.me](ifconfig.me).  |
+| `--instance [name]`                | This allows to run several instances simultaneously. **Note** that instance name must be unique string within Docker images and container names. |
 | `--force-pull`                     | Pull Docker images tagged *latest* if only `--tag` isn't specified. |
 | `--tag`                            | Specify Docker images tag.                                    |
-| `--stop (purge-volumes)`           | Stop and delete the Docker containers. If `purge-volumes` is specified, delete volumes as well. |
+| `--stop (--clean-data)`            | Stop and delete the Docker containers. If `--clean-data` is specified, Elasticsearch passwords, offchain state and Docker volumes will be deleted. |
 | `--no-offchain`                    | Start Subsocial stack without Offchain storage and ElasticSearch. |
 | `--no-substrate`                   | Start Subsocial stack without Substrate node.                 |
 | `--no-webui`                       | Start Subsocial stack without Web UI.                         |
@@ -238,7 +238,7 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--cluster-secret`                 | Specify IPFS Cluster secret if consensus is RAFT. Cluster secret must be equal across all cluster nodes. |
 | `--cluster-peername`               | Specify IPFS Cluster peer name. Each Cluster node must have its own unique peer name. |
 | `--offchain-cors`                  | Specify Offchain CORS (from what URL or IP it will be accessible). Example: `./start.sh --only-offchain --offchain-cors "https://mydomain.com"` |
-| `--offchain-cmd`                  | Override default startup command for offchain image. Example: `./start.sh --only-offchain --offchain-cmd "yarn api"` |
+| `--offchain-cmd`                   | Override default startup command for offchain image. Example: `./start.sh --only-offchain --offchain-cmd "yarn api"` |
 
 ### Caddy server proxy for Web UI
 

@@ -4,18 +4,36 @@ set -e
 pushd . > /dev/null
 
 # The following lines ensure we run from the root folder of this Starter
-export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-COMPOSE_DIR="${DIR}/compose-files"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export DIR
+COMPOSE_DIR="$DIR/compose-files"
 
 # Default props
 export IP=127.0.0.1
 export WEBUI_URL=http://$IP
 export WEB_UI_LOG_LEVEL=info
-
-PROJECT_NAME="subsocial"
-FORCEPULL="false"
 export EXTERNAL_VOLUME=~/subsocial_data
-STOPPING_MODE="none"
+
+# colors
+COLOR_R="\033[0;31m"    # red
+COLOR_Y="\033[0;33m"    # yellow
+COLOR_RESET="\033[00m"  # reset color
+
+# Start another instance of this project
+if [[ "$1" == "--instance" ]]; then
+    if [[ -n $2 ]] && [[ $2 =~ [a-zA-Z]{0,16} ]]; then
+        PROJECT_NAME=$2
+        shift 2
+    else
+        printf $COLOR_R"FATAL: '--instance' option must be provided with instance name\n"
+        exit 1
+    fi
+else
+    PROJECT_NAME="subsocial"
+fi
+
+FORCEPULL="false"
+STOP_MODE="none"
 DATA_STATUS_PRUNED="(data pruned)"
 DATA_STATUS_SAVED="(data saved)"
 
@@ -25,12 +43,10 @@ export CLUSTER_SECRET=""
 # Other IPFS Cluster variables
 export CLUSTER_PEERNAME="Subsocial Cluster"
 export CLUSTER_BOOTSTRAP=""
-export CLUSTER_CONFIG_FOLDER="${EXTERNAL_VOLUME}/ipfs/cluster"
-CLUSTER_CONFIG_PATH=$CLUSTER_CONFIG_FOLDER/service.json
 export IPFS_CLUSTER_CONSENSUS="crdt"
 
 # ElasticSearch related variables
-ELASTIC_PASSWORDS_PATH=${EXTERNAL_VOLUME}/es_passwords
+ELASTIC_PASSWORDS_PATH=$EXTERNAL_VOLUME/es-passwords-$PROJECT_NAME
 export ES_READONLY_USER="readonly"
 export ES_READONLY_PASSWORD=""
 export ES_OFFCHAIN_USER="offchain"
@@ -43,66 +59,158 @@ export SUBSTRATE_NODE_EXTRA_OPTS=""
 export OFFCHAIN_CORS="http://localhost"
 export OFFCHAIN_CUSTOM_CMD=""
 
-# Version variables
+# Docker images versions
 export POSTGRES_VERSION=12.4
 export ELASTICSEARCH_VERSION=7.4.1
 export IPFS_CLUSTER_VERSION=v0.13.0
 export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
-export NODE_VERSION=latest
+export SUBSTRATE_NODE_VERSION=latest
 export WEBUI_VERSION=latest
 
-# Internal Docker IP variables
-export WEBUI_DOCKER_IP=172.15.0.2
-export OFFCHAIN_IP=172.15.0.3
-export POSTGRES_IP=172.15.0.4
-export ELASTICSEARCH_IP=172.15.0.5
-export IPFS_NODE_IP=172.15.0.8
-export IPFS_CLUSTER_IP=172.15.0.9
-export SUBSTRATE_RPC_IP=172.15.0.21
-export SUBSTRATE_VALIDATOR_IP=172.15.0.22
+# Docker services
+export SERVICE_POSTGRES=postgres
+export SERVICE_ELASTICSEARCH=elasticsearch
+export SERVICE_IPFS_CLUSTER=ipfs-cluster
+export SERVICE_IPFS_NODE=ipfs-node
+export SERVICE_OFFCHAIN=offchain
+export SERVICE_NODE_RPC=node-rpc
+export SERVICE_NODE_VALIDATOR=node-validator
+export SERVICE_WEBUI=web-ui
+export SERVICE_CADDY=caddy
+
+set_port_if_available(){
+    local var_to_write="$1"
+    local port_to_check="$2"
+    local offset=0
+
+    local final_port
+    final_port="$(("$port_to_check" + "$offset"))"
+
+    until ! sudo lsof -i:"$final_port" > /dev/null; do
+        docker ps | grep "0.0.0.0:$final_port" | grep -q "$PROJECT_NAME" && break
+        offset="$((offset + 1))"
+        final_port="$(("$port_to_check" + "$offset"))"
+    done
+
+    export "$var_to_write"="$final_port"
+}
 
 # URL variables
-export SUBSTRATE_RPC_URL=ws://$SUBSTRATE_RPC_IP:9944
-export OFFCHAIN_URL=http://$OFFCHAIN_IP:3001
-export OFFCHAIN_WS=ws://127.0.0.1:3011
-export ES_URL=http://$ELASTICSEARCH_IP:9200
-export IPFS_CLUSTER_URL=http://$IPFS_CLUSTER_IP:9094
-export IPFS_NODE_URL=http://$IPFS_NODE_IP:5001
-export IPFS_READ_ONLY_NODE_URL=http://$IPFS_NODE_IP:8080
+export_container_urls(){
+    export SUBSTRATE_RPC_URL=ws://$SERVICE_NODE_RPC:$SUBSTRATE_WS_PORT
+    export OFFCHAIN_URL=http://$SERVICE_OFFCHAIN:$OFFCHAIN_API_PORT
+    export OFFCHAIN_WS=ws://$SERVICE_OFFCHAIN:$OFFCHAIN_WS_PORT
+    export ES_URL=http://$SERVICE_ELASTICSEARCH:$ES_PORT
+    export IPFS_CLUSTER_URL=http://$SERVICE_IPFS_CLUSTER:$IPFS_CLUSTER_API_PORT
+    export IPFS_NODE_URL=http://$SERVICE_IPFS_NODE:$IPFS_NODE_PORT
+    export IPFS_READ_ONLY_NODE_URL=http://$SERVICE_IPFS_NODE:$IPFS_READONLY_PORT
+}
 
-# Container names
-export CONT_POSTGRES=${PROJECT_NAME}-postgres
-export CONT_ELASTICSEARCH=${PROJECT_NAME}-elasticsearch
-export CONT_IPFS_CLUSTER=${PROJECT_NAME}-ipfs-cluster
-export CONT_IPFS_NODE=${PROJECT_NAME}-ipfs-node
-export CONT_OFFCHAIN=${PROJECT_NAME}-offchain
-export CONT_NODE_RPC=${PROJECT_NAME}-node-rpc
-export CONT_NODE_VALIDATOR=${PROJECT_NAME}-node-validator
-export CONT_WEBUI=${PROJECT_NAME}-web-ui
-export CONT_PROXY=${PROJECT_NAME}-proxy
+# Docker container ports
+printf $COLOR_Y'Trying to check whether ports are available, root permissions may be required...\n'$COLOR_RESET
+export_container_ports(){
+    set_port_if_available "SUBSTRATE_WS_PORT" 9944
+    set_port_if_available "SUBSTRATE_RPC_PORT" 9933
+    set_port_if_available "SUBSTRATE_TCP_PORT" 30333
+    set_port_if_available "SUBSTRATE_VALIDATOR_RPC_PORT" 9934
+    set_port_if_available "SUBSTRATE_VALIDATOR_TCP_PORT" 30334
 
-# Compose files list
-SUBSTRATE_RPC_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_rpc.yml"
-SUBSTRATE_VALIDATOR_COMPOSE=" -f ${COMPOSE_DIR}/substrate/substrate_validator.yml"
+    set_port_if_available "ES_PORT" 9200
 
-SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
+    set_port_if_available "IPFS_READONLY_PORT" 8080
+    set_port_if_available "IPFS_NODE_PORT" 5001
+    set_port_if_available "IPFS_SWARM_PORT" 4001
+
+    set_port_if_available "IPFS_CLUSTER_API_PORT" 9094
+    set_port_if_available "IPFS_CLUSTER_TCP_PORT" 9096
+
+    set_port_if_available "OFFCHAIN_API_PORT" 3001
+    set_port_if_available "OFFCHAIN_WS_PORT" 3011
+
+    set_port_if_available "WEB_UI_PORT" 3003
+
+    export_container_urls
+}
+export_container_ports
+
+show_ports_info(){
+    local is_running
+    printf $COLOR_RESET'\nSubsocial related ports that are listening on your host:\n'
+
+    is_running="$(docker ps | grep -wi "$CONT_NODE_RPC")" || printf ""
+    if [[ -n "$is_running" ]]; then
+        echo "Substrate WebSocket:" "$SUBSTRATE_WS_PORT"
+        echo "Substrate RPC:" "$SUBSTRATE_RPC_PORT"
+        echo "Substrate TCP:" "$SUBSTRATE_TCP_PORT"
+    fi
+
+    is_running="$(docker ps | grep -wi "$CONT_NODE_VALIDATOR")" || printf ""
+    if [[ -n "$is_running" ]]; then
+        echo "Substrate Validator RPC:" "$SUBSTRATE_VALIDATOR_RPC_PORT"
+        echo "Substrate Validator TCP:" "$SUBSTRATE_VALIDATOR_TCP_PORT"
+    fi
+
+    is_running="$(docker ps | grep -wi "$CONT_ELASTICSEARCH")" || printf ""
+    [[ -n "$is_running" ]] && echo "Elasticsearch:" "$ES_PORT"
+
+    is_running="$(docker ps | grep -wi "$CONT_IPFS_NODE")" || printf ""
+    if [[ -n "$is_running" ]]; then
+        echo "IPFS Node Read-only:" "$IPFS_READONLY_PORT"
+        echo "IPFS Node API:" "$IPFS_NODE_PORT"
+        echo "IPFS Node Swarm:" "$IPFS_SWARM_PORT"
+    fi
+
+    is_running="$(docker ps | grep -wi "$CONT_IPFS_CLUSTER")" || printf ""
+    if [[ -n "$is_running" ]]; then
+        echo "IPFS Cluster API:" "$IPFS_CLUSTER_API_PORT"
+        echo "IPFS Cluster TCP:" "$IPFS_CLUSTER_TCP_PORT"
+    fi
+
+    is_running="$(docker ps | grep -wi "$CONT_OFFCHAIN")" || printf ""
+    if [[ -n "$is_running" ]]; then
+        echo "Offchain API:" "$OFFCHAIN_API_PORT"
+        echo "Offchain Notifications WebSocket:" "$OFFCHAIN_WS_PORT"
+    fi
+
+    is_running="$(docker ps | grep -wi "$CONT_WEBUI")" || printf ""
+    [[ -n "$is_running" ]] && echo "Web UI:" "$WEB_UI_PORT"
+}
+
+# Docker container names
+export_container_names(){
+    export CONT_POSTGRES=$PROJECT_NAME-postgres
+    export CONT_ELASTICSEARCH=$PROJECT_NAME-elasticsearch
+    export CONT_IPFS_CLUSTER=$PROJECT_NAME-ipfs-cluster
+    export CONT_IPFS_NODE=$PROJECT_NAME-ipfs-node
+    export CONT_OFFCHAIN=$PROJECT_NAME-offchain
+    export CONT_NODE_RPC=$PROJECT_NAME-node-rpc
+    export CONT_NODE_VALIDATOR=$PROJECT_NAME-node-validator
+    export CONT_WEBUI=$PROJECT_NAME-web-ui
+    export CONT_CADDY=$PROJECT_NAME-proxy
+}
+export_container_names
+
+# Docker external volumes
+export IPFS_NODE_STAGING=$EXTERNAL_VOLUME/ipfs/daemon/staging
+export IPFS_NODE_DATA=$EXTERNAL_VOLUME/ipfs/daemon/data
+export CLUSTER_CONFIG_FOLDER=$EXTERNAL_VOLUME/ipfs/cluster
+CLUSTER_CONFIG_PATH=$CLUSTER_CONFIG_FOLDER/service.json
+export OFFCHAIN_STATE=$EXTERNAL_VOLUME/offchain-state-$PROJECT_NAME
+
+# Docker-compose files list
+SUBSTRATE_RPC_COMPOSE=" -f $COMPOSE_DIR/substrate/substrate_rpc.yml"
+SUBSTRATE_VALIDATOR_COMPOSE=" -f $COMPOSE_DIR/substrate/substrate_validator.yml"
+
+SELECTED_SUBSTRATE=$SUBSTRATE_RPC_COMPOSE$SUBSTRATE_VALIDATOR_COMPOSE
 
 COMPOSE_FILES=""
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
-COMPOSE_FILES+=${SELECTED_SUBSTRATE}
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/caddy.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
-
-# colors
-COLOR_R="\033[0;31m"    # red
-COLOR_Y="\033[0;33m"    # yellow
-
-# reset
-COLOR_RESET="\033[00m"
+COMPOSE_FILES+=" -f $COMPOSE_DIR/offchain.yml"
+COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
+COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
+COMPOSE_FILES+=$SELECTED_SUBSTRATE
+COMPOSE_FILES+=" -f $COMPOSE_DIR/caddy.yml"
+COMPOSE_FILES+=" -f $COMPOSE_DIR/web_ui.yml"
 
 parse_substrate_extra_opts(){
     while :; do
@@ -123,7 +231,7 @@ write_boostrap_peers(){
         if [[ -z $1 ]]; then
             break
         else
-            printf $1'\n'
+            printf "%s\n" "$1"
             local temp_file_name=tmp.$$.json
             local new_trusted_peers_query=".cluster.peer_addresses += [$1]"
             jq "$new_trusted_peers_query" $CLUSTER_CONFIG_PATH > $temp_file_name
@@ -134,7 +242,7 @@ write_boostrap_peers(){
 }
 
 wait_for_ipfs_node(){
-    until curl -s ${IPFS_READ_ONLY_NODE_URL}/version > /dev/null; do
+    until curl -s "localhost:$IPFS_NODE_PORT/version" > /dev/null; do
         sleep 1
     done
 }
@@ -142,18 +250,18 @@ wait_for_ipfs_node(){
 stop_container() {
     local cont_name=""
 
-    [[ -z $1 ]] || [[ ! -z $2 ]] \
+    [[ -z $1 ]] || [[ -n $2 ]] \
         && printf $COLOR_R"FATAL: 'stop_container' command must be provided with one argument" \
-        && exit -1
+        && exit 1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
-        && docker container stop ${CONT_OFFCHAIN} > /dev/null
+        && docker container stop $CONT_OFFCHAIN > /dev/null
 
     if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
         [[ $1 == ipfs-cluster ]] && cont_name=$CONT_IPFS_CLUSTER
         [[ $1 == ipfs-node ]] && cont_name=$CONT_IPFS_NODE
 
-        [[ ! -z $cont_name ]] && docker container stop $cont_name > /dev/null \
+        [[ -n $cont_name ]] && docker container stop $cont_name > /dev/null \
             || echo "nothing to stop" > /dev/null
     fi
 }
@@ -164,24 +272,24 @@ stop_container() {
 start_container(){
     local cont_name
 
-    [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'start_container' command must be provided with one argument" && exit -1
+    [[ -z $1 ]] || [[ -n $2 ]] \
+        && printf $COLOR_R"FATAL: 'start_container' command must be provided with one argument" && exit 1
 
     [[ $1 == offchain ]] && [[ $COMPOSE_FILES =~ 'offchain' ]] \
-        && cont_name=${CONT_OFFCHAIN}
+        && cont_name=$CONT_OFFCHAIN
 
     if [[ $COMPOSE_FILES =~ 'ipfs' ]]; then
         [[ $1 == ipfs-cluster ]] && cont_name=$CONT_IPFS_CLUSTER
         [[ $1 == ipfs-node ]] && cont_name=$CONT_IPFS_NODE
     fi
 
-    local is_running=$(docker ps | grep -wi "${cont_name}")
-    local exists=$(docker ps -a | grep -wi "${cont_name}")
+    local is_running="$(docker ps | grep -wi $cont_name)"
+    local exists="$(docker ps -a | grep -wi $cont_name)"
     if [[ -z $exists ]]; then
-        printf $COLOR_R"ERROR: container ${cont_name} doesn't exist\n"
+        printf $COLOR_R"ERROR: container %s doesn't exist\n" "$cont_name"
         exit 1
     else
-        [[ -z $is_running ]] && [[ ! -z $cont_name ]] \
+        [[ -z $is_running ]] && [[ -n $cont_name ]] \
             && docker container start $cont_name > /dev/null
     fi
 }
@@ -189,8 +297,8 @@ start_container(){
 recreate_container(){
     local recreate_allowed=""
 
-    [[ -z $1 ]] || [[ ! -z $2 ]] \
-        && printf $COLOR_R"FATAL: 'recreate_container' command must be provided with one argument" && exit -1
+    [[ -z $1 ]] || [[ -n $2 ]] \
+        && printf $COLOR_R"FATAL: 'recreate_container' command must be provided with one argument" && exit 1
 
     [[ $1 == offchain && $COMPOSE_FILES =~ 'offchain' ]] \
         && recreate_allowed="true"
@@ -199,43 +307,43 @@ recreate_container(){
         && recreate_allowed="true"
 
     if [[ -z $recreate_allowed ]]; then
-        printf $COLOR_R"ERROR: $1 cannot be restarted before corresponding service included"
+        printf $COLOR_R"ERROR: %s cannot be restarted before corresponding service included" "$1"
         exit 1
     else
-        exec_docker_compose up -d $1
+        exec_docker_compose up -d "$1"
     fi
 }
 
 create_subsocial_elastic_users(){
     local password
-    local elastic_password=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi 'elastic' | cut -d "=" -f2- | tr -d '[:space:]')
+    local elastic_password="$(< $ELASTIC_PASSWORDS_PATH grep -wi 'elastic' | cut -d "=" -f2- | tr -d '[:space:]')"
 
-    curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/role/index_subsocial' \
-    -H "Content-Type: application/json" --data-binary "@${DIR}/elastic/add_index_role.json" > /dev/null
+    curl -XPOST -su elastic:"$elastic_password" 'localhost:9200/_security/role/index_subsocial' \
+    -H "Content-Type: application/json" --data-binary "@$DIR/elastic/add_index_role.json" > /dev/null
 
-    curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/role/read_subsocial' \
-    -H "Content-Type: application/json" --data-binary "@${DIR}/elastic/add_read_role.json" > /dev/null
+    curl -XPOST -su elastic:"$elastic_password" 'localhost:9200/_security/role/read_subsocial' \
+    -H "Content-Type: application/json" --data-binary "@$DIR/elastic/add_read_role.json" > /dev/null
 
     password=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
-    curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/user/'$ES_OFFCHAIN_USER'' \
+    curl -XPOST -su elastic:"$elastic_password" 'localhost:9200/_security/user/'$ES_OFFCHAIN_USER'' \
     -H "Content-Type: application/json" -d '{ "password": "'$password'", "roles" : [ "index_subsocial" ] }' > /dev/null \
     && echo "PASSWORD offchain = $password" >> $ELASTIC_PASSWORDS_PATH
 
     password=$(od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')
-    curl -XPOST -su elastic:$elastic_password 'localhost:9200/_security/user/'$ES_READONLY_USER'' \
+    curl -XPOST -su elastic:"$elastic_password" 'localhost:9200/_security/user/'$ES_READONLY_USER'' \
     -H "Content-Type: application/json" -d '{ "password": "'$password'", "roles" : [ "read_subsocial" ] }' > /dev/null \
     && echo "PASSWORD readonly = $password" >> $ELASTIC_PASSWORDS_PATH
 }
 
 resolve_subsocial_elastic_passwords(){
-    ES_OFFCHAIN_PASSWORD=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi "$ES_OFFCHAIN_USER" | cut -d "=" -f2- | tr -d '[:space:]')
-    ES_READONLY_PASSWORD=$(cat ${ELASTIC_PASSWORDS_PATH} | grep -wi "$ES_READONLY_USER" | cut -d "=" -f2- | tr -d '[:space:]')
+    ES_OFFCHAIN_PASSWORD="$(< $ELASTIC_PASSWORDS_PATH grep -wi $ES_OFFCHAIN_USER | cut -d "=" -f2- | tr -d '[:space:]')"
+    ES_READONLY_PASSWORD="$(< $ELASTIC_PASSWORDS_PATH grep -wi $ES_READONLY_USER | cut -d "=" -f2- | tr -d '[:space:]')"
     printf 'ElasticSearch passwords are set to offchain container\n\n'
 }
 
 exec_docker_compose(){
     [[ -z $1 ]] && printf $COLOR_R'FATAL: wrong usage of `exec_docker_compose`. Empty parameter $1\n'$COLOR_RESET \
-        && exit -1
+        && exit 1
 
     docker-compose -p $PROJECT_NAME $COMPOSE_FILES $1 $2 $3 > /dev/null
 }
@@ -257,23 +365,6 @@ while :; do
         # Misc
         #################################################
 
-        # Start binding components to global ip
-        # TODO: do we need this?
-        --global)
-
-            IP=$(curl -s ifconfig.me)
-
-            SUBSTRATE_RPC_URL='ws://'$IP':9944'
-            OFFCHAIN_URL='http://'$IP':3001'
-            OFFCHAIN_WS='ws://'$IP':3011'
-            ES_URL='http://'$IP':9200'
-            WEBUI_URL='http://'$IP
-            IPFS_READ_ONLY_NODE_URL='http://'$IP':8080'
-            IPFS_NODE_URL='http://'$IP':5001'
-
-            printf $COLOR_Y'Starting globally...\n\n'$COLOR_RESET
-            ;;
-
         # Pull latest changes by tag (ref. 'Version variables' or '--tag')
         --force-pull)
             FORCEPULL="true"
@@ -287,7 +378,7 @@ while :; do
                 break
             else
                 export OFFCHAIN_VERSION=$2
-                export NODE_VERSION=$2
+                export SUBSTRATE_NODE_VERSION=$2
                 export WEBUI_VERSION=$2
                 printf $COLOR_Y'Switched to components by tag '$2'\n\n'$COLOR_RESET
                 shift
@@ -296,12 +387,19 @@ while :; do
 
         # Delete project's docker containers
         --stop)
-            if [[ $2 == "purge-volumes" ]]; then
-              STOPPING_MODE=$2
+            if [[ $2 == "--clean-data" ]]; then
+                STOP_MODE=$2
+                shift
             else
-              STOPPING_MODE="default"
+                STOP_MODE="default"
             fi
             ;;
+
+        # Show Subsocail related ports currently listening on the host machine
+        --show-ports)
+            show_ports_info
+            exit 0
+        ;;
 
         #################################################
         # Exclude switches
@@ -333,50 +431,50 @@ while :; do
             printf $COLOR_Y'Starting without IPFS Cluster...\n\n'$COLOR_RESET
             ;;
 
+        --no-elasticsearch)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/elasticsearch.yml/}"
+            printf $COLOR_Y'Starting without Elasticsearch...\n\n'$COLOR_RESET
+            ;;
+
         #################################################
         # Include-only switches
         #################################################
 
         --only-offchain)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/offchain.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/offchain.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
             printf $COLOR_Y'Starting Offchain only...\n\n'$COLOR_RESET
             ;;
 
         --only-elastic)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
             printf $COLOR_Y'Starting ElasticSearch only...\n\n'$COLOR_RESET
             ;;
 
         --only-substrate)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
-            COMPOSE_FILES+=${SELECTED_SUBSTRATE}
+            COMPOSE_FILES+=$SELECTED_SUBSTRATE
             printf $COLOR_Y'Starting only Substrate...\n\n'$COLOR_RESET
             ;;
 
         --only-webui)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/web_ui.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/web_ui.yml"
             printf $COLOR_Y'Starting only Web UI...\n\n'$COLOR_RESET
             ;;
 
         --only-proxy)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/caddy.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/caddy.yml"
             printf $COLOR_Y'Starting only Caddy server proxy...\n\n'$COLOR_RESET
             ;;
 
         --only-ipfs)
             COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network.yml"
-            COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ipfs.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
             printf $COLOR_Y'Starting only IPFS cluster...\n\n'$COLOR_RESET
             ;;
 
@@ -483,13 +581,13 @@ while :; do
                 COMPOSE_FILES="${COMPOSE_FILES/${SELECTED_SUBSTRATE}/}"
                 case $2 in
                     all)
-                        SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}${SUBSTRATE_VALIDATOR_COMPOSE}
+                        SELECTED_SUBSTRATE=$SUBSTRATE_RPC_COMPOSE$SUBSTRATE_VALIDATOR_COMPOSE
                         ;;
                     rpc)
-                        SELECTED_SUBSTRATE=${SUBSTRATE_RPC_COMPOSE}
+                        SELECTED_SUBSTRATE=$SUBSTRATE_RPC_COMPOSE
                         ;;
                     validator)
-                        SELECTED_SUBSTRATE=${SUBSTRATE_VALIDATOR_COMPOSE}
+                        SELECTED_SUBSTRATE=$SUBSTRATE_VALIDATOR_COMPOSE
                         ;;
                     *)
                         printf $COLOR_R'WARN: --substrate-mode provided with unknown option %s\n'$COLOR_RESET "$2" >&2
@@ -497,7 +595,7 @@ while :; do
                         ;;
                 esac
                 shift
-                COMPOSE_FILES+=${SELECTED_SUBSTRATE}
+                COMPOSE_FILES+=$SELECTED_SUBSTRATE
             fi
             ;;
 
@@ -506,7 +604,7 @@ while :; do
         #################################################
 
         --cluster-id)
-            docker exec subsocial-ipfs-cluster ipfs-cluster-ctl id
+            docker exec $CONT_IPFS_CLUSTER ipfs-cluster-ctl id
             break
             ;;
 
@@ -559,12 +657,12 @@ while :; do
         --cluster-peers)
             test_jq_installation
 
-            if [[ -z '$2' ]] || [[ -z '$3' ]]; then
+            if [[ -z "$2" ]] || [[ -z "$3" ]]; then
                 printf $COLOR_R'ERROR: --cluster-peers must be provided with (add/remove/override) and URI(s) JSON array\n' >&2
-                printf "Example of rewriting peers: "$COLOR_RESET"--cluster-peers override '[\"*\"]'\n" >&2
-                printf $COLOR_R"Example of adding a peer: "$COLOR_RESET"--cluster-peers add '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
-                printf $COLOR_R"Example of removing a peer: "$COLOR_RESET"--cluster-peers remove '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
-                printf $COLOR_R"\nWhere "$COLOR_RESET"\"Peer URI\""$COLOR_R" looks like: "$COLOR_RESET"/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V\n" >&2
+                printf "Example of rewriting peers: $COLOR_RESET--cluster-peers override '[\"*\"]'\n" >&2
+                printf $COLOR_R"Example of adding a peer: $COLOR_RESET--cluster-peers add '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
+                printf $COLOR_R"Example of removing a peer: $COLOR_RESET--cluster-peers remove '\"PeerURI-1\",\"PeerURI-2\"'\n" >&2
+                printf $COLOR_R"\nWhere $COLOR_RESET\"Peer URI\"$COLOR_R looks like: $COLOR_RESET/ip4/172.15.0.9/tcp/9096/p2p/12D3KooWD8YVcSx6ERnEDXZpXzJ9ctkTFDhDu8d1eQqdDsLgPz7V\n" >&2
                 break
             fi
 
@@ -627,6 +725,11 @@ while :; do
 
         #################################################
 
+        --instance)
+            printf $COLOR_R"FATAL: '--instance' option must be provided as the first option\n"
+            exit 1
+            ;;
+
         --) # End of all options.
             shift
             break
@@ -638,35 +741,36 @@ while :; do
             ;;
 
         *)
-            mkdir ${EXTERNAL_VOLUME} 2> /dev/null || true
-            if [[ ${STOPPING_MODE} != "none" ]]; then
+            mkdir $EXTERNAL_VOLUME 2> /dev/null || true
+            if [[ $STOP_MODE != "none" ]]; then
                 printf $COLOR_Y'Doing a deep clean ...\n\n'$COLOR_RESET
                 data_status=$DATA_STATUS_SAVED
 
                 exec_docker_compose down
-                if [[ ${STOPPING_MODE} == "purge-volumes" ]]; then
-                    printf $COLOR_R'"purge-volumes" will clean all data produced by the project (Postgres, ElasticSearch, etc).\n'
-                    printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read answer_to_purge
+                if [[ $STOP_MODE == "--clean-data" ]]; then
+                    printf $COLOR_R'"clean-data" will clean all data produced by the project (Postgres, ElasticSearch, etc).\n'
+                    printf $COLOR_R'Note that IPFS data will not be removed. You can do this manually.\n'
+                    printf 'Do you really want to continue?'$COLOR_RESET' [Y/N]: ' && read -r answer_to_purge
                     if [[ $answer_to_purge == "Y" ]]; then
                         docker-compose --project-name=$PROJECT_NAME $COMPOSE_FILES down -v 2> /dev/null || true
 
-                        printf $COLOR_Y'Cleaning IPFS data, Offchain state and ES passwords. Root may be required.\n'$COLOR_RESET
-                        [[ -d $EXTERNAL_VOLUME ]] && sudo rm -rf $EXTERNAL_VOLUME || true
-                        [[ -f $ELASTIC_PASSWORDS_PATH ]] && rm $ELASTIC_PASSWORDS_PATH || true
+                        printf $COLOR_Y'Cleaning Offchain state and ES passwords. Root may be required.\n'$COLOR_RESET
+                        [[ -d $OFFCHAIN_STATE ]] && sudo rm -rf $OFFCHAIN_STATE
+                        [[ -f $ELASTIC_PASSWORDS_PATH ]] && sudo rm -f $ELASTIC_PASSWORDS_PATH
                         data_status=$DATA_STATUS_PRUNED
                     fi
                 fi
 
-                printf "\nProject stopped successfully $data_status\n"
+                printf "\nProject stopped successfully %s\n" "$data_status"
                 printf $COLOR_RESET'\nNon empty Docker volumes:\n'
                 docker volume ls
-                [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '$EXTERNAL_VOLUME'\n"
+                [[ -d $EXTERNAL_VOLUME ]] && printf "External volume path: '%s'\n" "$EXTERNAL_VOLUME"
                 break
             fi
 
             printf $COLOR_Y'Starting Subsocial...\n\n'$COLOR_RESET
 
-            [[ ${FORCEPULL} = "true" ]] && exec_docker_compose pull
+            [[ $FORCEPULL = "true" ]] && exec_docker_compose pull
             exec_docker_compose up -d
 
             [[ $COMPOSE_FILES =~ 'offchain' ]] && printf "\nHold on, starting Offchain:\n\n"
@@ -676,17 +780,16 @@ while :; do
 
                 # ElasticSearch
                 printf "Waiting until ElasticSearch starts...\n"
-                until curl -s ${ES_URL} > /dev/null; do
+                until curl -s "localhost:$ES_PORT" > /dev/null; do
                     sleep 1
                 done
 
                 # TODO: check whether it's the first start of ElasticSearch instead
                 if [[ ! -f $ELASTIC_PASSWORDS_PATH ]]; then
                     printf "Generating passwords for ElasticSearch...\n"
-                    docker exec -t subsocial-elasticsearch bin/elasticsearch-setup-passwords auto -b \
+                    docker exec -t $CONT_ELASTICSEARCH bin/elasticsearch-setup-passwords auto -b \
                     | grep -wi 'password.*=' > $ELASTIC_PASSWORDS_PATH
-                    printf "ES passwords are successfully saved to ${ELASTIC_PASSWORDS_PATH}\n\n"
-
+                    printf "ES passwords are successfully saved to %s\n\n" "$ELASTIC_PASSWORDS_PATH"
                     create_subsocial_elastic_users
                 fi
 
@@ -710,7 +813,7 @@ while :; do
                 wait_for_ipfs_node
 
                 printf "Setting up IPFS cluster...\n"
-                [[ ! -z $CLUSTER_BOOTSTRAP ]] && write_boostrap_peers $CLUSTER_BOOTSTRAP
+                [[ -n $CLUSTER_BOOTSTRAP ]] && write_boostrap_peers $CLUSTER_BOOTSTRAP
                 start_container ipfs-cluster
             fi
 
@@ -719,13 +822,15 @@ while :; do
                 printf 'Offchain successfully started\n\n'
             fi
 
+            show_ports_info
+
             if [[ $COMPOSE_FILES =~ 'web_ui' ]]; then
                 printf "\nWaiting for Web UI to start...\n"
-                until curl -s ${WEBUI_URL} > /dev/null; do
+                until curl -s "$WEBUI_URL" > /dev/null; do
                     sleep 1
                 done
 
-                printf 'Web UI is available at '$WEBUI_URL'\n'
+                printf 'Web UI is available at %s\n' "WEBUI_URL"
             fi
             printf '\nContainers are ready.\n'
             break

@@ -1,13 +1,12 @@
 version: "3.2"
 services:
-
   caddy:
     image: caddy/caddy
-    container_name: $CONT_PROXY
+    container_name: $CONT_CADDY
     restart: always
     network_mode: "host"
     volumes:
-      - $DIR/Caddyfile:/etc/caddy/Caddyfile
+      - ${DIR}/Caddyfile:/etc/caddy/Caddyfile
       - caddy_certs:/root/.caddy
 
 volumes:
