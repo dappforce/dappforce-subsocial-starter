@@ -46,7 +46,6 @@ export CLUSTER_BOOTSTRAP=""
 export IPFS_CLUSTER_CONSENSUS="crdt"
 
 # ElasticSearch related variables
-OLD_ELASTIC_PASSWORDS_PATH=$EXTERNAL_VOLUME/es_passwords
 ELASTIC_PASSWORDS_PATH=$EXTERNAL_VOLUME/es-passwords-$PROJECT_NAME
 export ES_READONLY_USER="readonly"
 export ES_READONLY_PASSWORD=""
@@ -337,8 +336,6 @@ create_subsocial_elastic_users(){
 }
 
 resolve_subsocial_elastic_passwords(){
-    [[ -f $OLD_ELASTIC_PASSWORDS_PATH ]] && mv $OLD_ELASTIC_PASSWORDS_PATH $ELASTIC_PASSWORDS_PATH
-
     ES_OFFCHAIN_PASSWORD="$(< $ELASTIC_PASSWORDS_PATH grep -wi $ES_OFFCHAIN_USER | cut -d "=" -f2- | tr -d '[:space:]')"
     ES_READONLY_PASSWORD="$(< $ELASTIC_PASSWORDS_PATH grep -wi $ES_READONLY_USER | cut -d "=" -f2- | tr -d '[:space:]')"
     printf 'ElasticSearch passwords are set to offchain container\n\n'
