@@ -1,0 +1,62 @@
+version: "3.4"
+services:
+  postgres:
+    image: postgres:12
+    restart: always
+    command: -p $DB_PORT
+    ports:
+      - $DB_PORT:$DB_PORT
+    volumes:
+      - hydra_indexer_db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: indexer-db
+
+  indexer:
+    image: joystream/hydra-indexer:2.0.1-beta.9
+    restart: unless-stopped
+    environment:
+      - INDEXER_WORKERS=200
+      - DB_NAME=indexer-db
+      - DB_HOST=$DB_HOST
+      - DB_USER=$DB_USER
+      - DB_PASS=$DB_PASS
+      - DB_PORT=$DB_PORT
+      - REDIS_URI=redis://redis:6379/0
+      - DEBUG=index*
+      - BLOCK_HEIGHT=658170
+      - TYPES_JSON=typedefs.json
+      - WS_PROVIDER_ENDPOINT_URI=$WS_PROVIDER_ENDPOINT_URI
+    volumes:
+      - ./typedefs.json:/home/hydra/packages/hydra-indexer/typedefs.json
+    command: >
+      sh -c "yarn db:bootstrap && yarn start:prod"
+    depends_on:
+      - postgres
+
+  indexer-api-gateway:
+    image: joystream/hydra-indexer-gateway:2.0.1-beta.9
+    restart: unless-stopped
+    environment:
+      - WARTHOG_STARTER_DB_DATABASE=indexer-db
+      - WARTHOG_STARTER_DB_HOST=$DB_HOST
+      - WARTHOG_STARTER_DB_PASSWORD=$DB_PASS
+      - WARTHOG_STARTER_DB_PORT=$DB_PORT
+      - WARTHOG_STARTER_DB_USERNAME=$DB_USER
+      - WARTHOG_STARTER_REDIS_URI=redis://redis:6379/0
+      - PORT=$GRAPHQL_SERVER_PORT
+    ports:
+      - $GRAPHQL_SERVER_PORT:$GRAPHQL_SERVER_PORT
+    depends_on:
+      - redis
+      - indexer
+
+  redis:
+    image: redis:6.0-alpine
+    restart: always
+    ports:
+      - "6379"
+
+volumes:
+  hydra_indexer_db:
