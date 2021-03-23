@@ -139,7 +139,7 @@ export_container_ports
 
 show_ports_info(){
     local is_running
-    printf $COLOR_RESET'\nSubsocial related ports that are listening on your host:\n'
+    printf $COLOR_Y'\nSubsocial related ports that are listening on your host:\n'$COLOR_RESET
 
     is_running="$(docker ps | grep -wi "$CONT_NODE_RPC")" || printf ""
     if [[ -n "$is_running" ]]; then
@@ -427,7 +427,7 @@ while :; do
         --no-offchain)
             COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/postgres.yml/}"
             COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/offchain.yml/}"
-            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/elastic\/compose.yml/}"
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/elasticsearch.yml/}"
             printf $COLOR_Y'Starting without Offchain...\n\n'$COLOR_RESET
             ;;
 
