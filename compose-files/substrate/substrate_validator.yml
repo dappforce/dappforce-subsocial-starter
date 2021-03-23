@@ -1,4 +1,4 @@
-version: "3.2"
+version: "3.4"
 services:
   node-validator:
     image: dappforce/subsocial-node:$SUBSTRATE_NODE_VERSION
