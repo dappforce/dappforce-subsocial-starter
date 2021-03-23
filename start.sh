@@ -124,6 +124,8 @@ export_container_ports(){
     set_port_if_available "OFFCHAIN_API_PORT" 3001
     set_port_if_available "OFFCHAIN_WS_PORT" 3011
 
+    set_port_if_available "OFFCHAIN_POSTGRES_PORT" 5432
+
     export_container_urls
 }
 export_container_ports
@@ -166,6 +168,11 @@ show_ports_info(){
         echo "Offchain API:" "$OFFCHAIN_API_PORT"
         echo "Offchain Notifications WebSocket:" "$OFFCHAIN_WS_PORT"
     fi
+
+    is_running="$(docker ps | grep -wi "$CONT_POSTGRES")" || printf ""
+    if [[ -n "$is_running" ]]; then
+        echo "PostgreSQL:" "$OFFCHAIN_POSTGRES_PORT"
+    fi
 }
 
 # Docker container names
@@ -195,6 +202,7 @@ SUBSTRATE_VALIDATOR_COMPOSE=" -f $COMPOSE_DIR/substrate/substrate_validator.yml"
 SELECTED_SUBSTRATE=$SUBSTRATE_RPC_COMPOSE$SUBSTRATE_VALIDATOR_COMPOSE
 
 COMPOSE_FILES=""
+COMPOSE_FILES+=" -f $COMPOSE_DIR/postgres.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/offchain.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
@@ -401,6 +409,7 @@ while :; do
         #################################################
 
         --no-offchain)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/postgres.yml/}"
             COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/offchain.yml/}"
             COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/elastic\/compose.yml/}"
             printf $COLOR_Y'Starting without Offchain...\n\n'$COLOR_RESET
@@ -432,6 +441,7 @@ while :; do
 
         --only-offchain)
             COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/postgres.yml"
             COMPOSE_FILES+=" -f $COMPOSE_DIR/offchain.yml"
             COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
             COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
