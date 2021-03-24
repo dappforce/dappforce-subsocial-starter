@@ -184,7 +184,7 @@ show_ports_info(){
     is_running="$(docker ps | grep -wi "$CONT_HYDRA_PROCESSOR")" || printf ""
     if [[ -n "$is_running" ]]; then
         echo "Hydra processor:" "$GRAPHQL_SERVER_PORT"
-        echo "Wathog app:" "$WARTHOG_APP_PORT"
+        echo "Warthog app:" "$WARTHOG_APP_PORT"
     fi
 }
 

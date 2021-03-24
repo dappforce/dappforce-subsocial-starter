@@ -3,7 +3,7 @@ services:
   postgres:
     image: postgres:$POSTGRES_VERSION
     container_name: $CONT_POSTGRES
-    restart: on-failure
+    restart: always
     command: -p $OFFCHAIN_POSTGRES_PORT
     environment:
       POSTGRES_DB: $DB_NAME
