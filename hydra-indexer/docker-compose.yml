@@ -14,7 +14,7 @@ services:
       POSTGRES_DB: indexer-db
 
   indexer:
-    image: joystream/hydra-indexer:2.0.1-beta.9
+    image: joystream/hydra-indexer:2.1.0-beta.5
     restart: unless-stopped
     environment:
       - INDEXER_WORKERS=5
@@ -36,7 +36,7 @@ services:
       - postgres
 
   indexer-api-gateway:
-    image: joystream/hydra-indexer-gateway:2.0.1-beta.9
+    image: joystream/hydra-indexer-gateway:2.1.0-beta.5
     restart: unless-stopped
     environment:
       - WARTHOG_STARTER_DB_DATABASE=indexer-db
