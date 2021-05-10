@@ -1,5 +1,4 @@
 {
-  "RefCount": "u32",
   "IpfsCid": "Text",
   "DonationId": "u64",
   "DonationRecipient": {
@@ -336,7 +335,5 @@
     "notes": "Text",
     "confirmed_by": "Vec<AccountId>",
     "expires_at": "BlockNumber"
-  },
-  "Address": "AccountId",
-  "LookupSource": "AccountId"
+  }
 }
