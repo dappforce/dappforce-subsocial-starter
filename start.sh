@@ -10,8 +10,6 @@ COMPOSE_DIR="$DIR/compose-files"
 
 # Default props
 export IP=127.0.0.1
-export WEBUI_URL=http://$IP
-export WEB_UI_LOG_LEVEL=info
 export EXTERNAL_VOLUME=~/subsocial_data
 
 # colors
@@ -66,7 +64,6 @@ export IPFS_CLUSTER_VERSION=v0.13.0
 export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
 export SUBSTRATE_NODE_VERSION=latest
-export WEBUI_VERSION=latest
 
 # Docker services
 export SERVICE_POSTGRES=postgres
@@ -76,7 +73,6 @@ export SERVICE_IPFS_NODE=ipfs-node
 export SERVICE_OFFCHAIN=offchain
 export SERVICE_NODE_RPC=node-rpc
 export SERVICE_NODE_VALIDATOR=node-validator
-export SERVICE_WEBUI=web-ui
 export SERVICE_CADDY=caddy
 
 set_port_if_available(){
@@ -128,8 +124,6 @@ export_container_ports(){
     set_port_if_available "OFFCHAIN_API_PORT" 3001
     set_port_if_available "OFFCHAIN_WS_PORT" 3011
 
-    set_port_if_available "WEB_UI_PORT" 3003
-
     export_container_urls
 }
 export_container_ports
@@ -172,9 +166,6 @@ show_ports_info(){
         echo "Offchain API:" "$OFFCHAIN_API_PORT"
         echo "Offchain Notifications WebSocket:" "$OFFCHAIN_WS_PORT"
     fi
-
-    is_running="$(docker ps | grep -wi "$CONT_WEBUI")" || printf ""
-    [[ -n "$is_running" ]] && echo "Web UI:" "$WEB_UI_PORT"
 }
 
 # Docker container names
@@ -186,7 +177,6 @@ export_container_names(){
     export CONT_OFFCHAIN=$PROJECT_NAME-offchain
     export CONT_NODE_RPC=$PROJECT_NAME-node-rpc
     export CONT_NODE_VALIDATOR=$PROJECT_NAME-node-validator
-    export CONT_WEBUI=$PROJECT_NAME-web-ui
     export CONT_CADDY=$PROJECT_NAME-proxy
 }
 export_container_names
@@ -210,7 +200,6 @@ COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
 COMPOSE_FILES+=$SELECTED_SUBSTRATE
 COMPOSE_FILES+=" -f $COMPOSE_DIR/caddy.yml"
-COMPOSE_FILES+=" -f $COMPOSE_DIR/web_ui.yml"
 
 parse_substrate_extra_opts(){
     while :; do
@@ -379,7 +368,6 @@ while :; do
             else
                 export OFFCHAIN_VERSION=$2
                 export SUBSTRATE_NODE_VERSION=$2
-                export WEBUI_VERSION=$2
                 printf $COLOR_Y'Switched to components by tag '$2'\n\n'$COLOR_RESET
                 shift
             fi
@@ -414,11 +402,6 @@ while :; do
         --no-substrate)
             COMPOSE_FILES="${COMPOSE_FILES/${SELECTED_SUBSTRATE}/}"
             printf $COLOR_Y'Starting without Substrate Nodes...\n\n'$COLOR_RESET
-            ;;
-
-        --no-webui)
-            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/web_ui.yml/}"
-            printf $COLOR_Y'Starting without Web UI...\n\n'$COLOR_RESET
             ;;
 
         --no-proxy)
@@ -458,12 +441,6 @@ while :; do
             COMPOSE_FILES=""
             COMPOSE_FILES+=$SELECTED_SUBSTRATE
             printf $COLOR_Y'Starting only Substrate...\n\n'$COLOR_RESET
-            ;;
-
-        --only-webui)
-            COMPOSE_FILES=""
-            COMPOSE_FILES+=" -f $COMPOSE_DIR/web_ui.yml"
-            printf $COLOR_Y'Starting only Web UI...\n\n'$COLOR_RESET
             ;;
 
         --only-proxy)
@@ -511,17 +488,6 @@ while :; do
             else
                 export ES_URL=$2
                 printf $COLOR_Y'ElasticSearch URL set to %s\n\n'$COLOR_RESET "$2"
-                shift
-            fi
-            ;;
-
-        --webui-url)
-            if [[ -z $2 ]] || ! [[ $2 =~ https?://.* ]]; then
-                printf $COLOR_R'WARN: --webui-url must be provided with a URL string\n'$COLOR_RESET >&2
-                break
-            else
-                WEBUI_URL=$2
-                printf $COLOR_Y'Web UI IP set to %s\n\n'$COLOR_RESET "$2"
                 shift
             fi
             ;;
@@ -831,14 +797,6 @@ while :; do
 
             show_ports_info
 
-            if [[ $COMPOSE_FILES =~ 'web_ui' ]]; then
-                printf "\nWaiting for Web UI to start...\n"
-                until curl -s "$WEBUI_URL" > /dev/null; do
-                    sleep 1
-                done
-
-                printf 'Web UI is available at %s\n' "WEBUI_URL"
-            fi
             printf '\nContainers are ready.\n'
             break
     esac
