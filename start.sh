@@ -81,12 +81,12 @@ set_port_if_available(){
     local offset=0
 
     local final_port
-    final_port="$(("$port_to_check" + "$offset"))"
+    final_port="$((port_to_check + offset))"
 
     until ! sudo lsof -i:"$final_port" > /dev/null; do
         docker ps | grep "0.0.0.0:$final_port" | grep -q "$PROJECT_NAME" && break
         offset="$((offset + 1))"
-        final_port="$(("$port_to_check" + "$offset"))"
+        final_port="$((port_to_check + offset))"
     done
 
     export "$var_to_write"="$final_port"
