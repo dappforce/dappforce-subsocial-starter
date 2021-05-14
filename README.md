@@ -216,18 +216,15 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--stop (--clean-data)`            | Stop and delete the Docker containers. If `--clean-data` is specified, Elasticsearch passwords, offchain state and Docker volumes will be deleted. |
 | `--no-offchain`                    | Start Subsocial stack without Offchain storage and ElasticSearch. |
 | `--no-substrate`                   | Start Subsocial stack without Substrate node.                 |
-| `--no-webui`                       | Start Subsocial stack without Web UI.                         |
 | `--no-proxy`                       | Start Subsocial stack without Caddy server proxy.             |
 | `--no-ipfs`                        | Start Subsocial stack without IPFS Cluster.                   |
 | `--only-offchain`                  | Start (or update) only Offchain container.                    |
 | `--only-substrate`                 | Start (or update) only Substrate node's container.            |
-| `--only-webui`                     | Start (or update) only Web UI container.                      |
 | `--only-proxy`                     | Start (or update) only Caddy server proxy container.          |
 | `--only-ipfs`                      | Start (or update) only IPFS Cluster container.                |
 | `--substrate-url`                  | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944` |
 | `--offchain-url`                   | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001` |
 | `--elastic-url`                    | Specify ElasticSearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200` |
-| `--webui-ip`                       | Specify Web UI IP address. Example: `./start.sh --global --substrate-url http://172.15.0.2` |
 | `--ipfs-ip <readonly/cluster/all>` | Specify custom IPFS IP for IPFS Gateway (readonly), IPFS Cluster or both. |
 | `--substrate-extra-opts`           | Start Substrate node with additional Substrate CLI options. Example: `./start.sh --substrate-extra-opts "--dev --name my-subsocial-node"` |
 | `--substrate-mode <rpc/validator>` | Start Substrate in a specified mode (`rpc` or `validator`). By default (when isn't specified) starts both nodes RPC and Authority (validator). |
@@ -241,27 +238,9 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--offchain-cmd`                   | Override default startup command for offchain image. Example: `./start.sh --only-offchain --offchain-cmd "yarn api"` |
 | `--show-ports`                     | Show ports of the current instance. Example: `./start.sh --instance backup --show-ports` |
 
-### Caddy server proxy for Web UI
-
-By default the project will start one Caddy server container with automatically configured proxy.
-If it is running, you can open the **[Web UI](#web-ui)** on the default HTTP port.
-
-| Container name    | External Port | Local URL | Description |
-| ----------------- | ------------- | --------- | ----------- |
-| `subsocial-proxy` | `80`          |           |             |
-
 ### Web UI
 
-By default the project will start one container for the Web UI.
-If running, you can open the Subsocial web UI in your browser:
-
-[http://localhost/](http://localhost)
-
-This can be managed with `--no-webui` and `--only-webui` options.
-
-| Container name     | External port | Local URL                             | Description                                    |
-| ------------------ | ------------- | ------------------------------------- | ---------------------------------------------- |
-| `subsocial-web-ui` |               | http://localhost | [Subsocial UI](https://github.com/dappforce/dappforce-subsocial-ui) |
+By default the project will start with no Web app onboard.
 
 ## License
 
