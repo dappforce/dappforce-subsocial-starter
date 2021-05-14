@@ -16,7 +16,7 @@ services:
       http.port: "$ES_PORT"
       http.cors.enabled: "true"
       http.cors.allow-credentials: "true"
-      http.cors.allow-origin: "$WEBUI_URL,https://dejavu.appbase.io"
+      http.cors.allow-origin: "https://dejavu.appbase.io"
       http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization,Access-Control-Allow-Headers,Accept"
     volumes:
       - es_data:/usr/share/elasticsearch/data
