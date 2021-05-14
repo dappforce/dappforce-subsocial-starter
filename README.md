@@ -238,10 +238,6 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--offchain-cmd`                   | Override default startup command for offchain image. Example: `./start.sh --only-offchain --offchain-cmd "yarn api"` |
 | `--show-ports`                     | Show ports of the current instance. Example: `./start.sh --instance backup --show-ports` |
 
-### Web UI
-
-By default the project will start with no Web app onboard.
-
 ## License
 
 Subsocial is [GPL 3.0](./LICENSE) licensed.
