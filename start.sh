@@ -9,7 +9,7 @@ export DIR
 COMPOSE_DIR="$DIR/compose-files"
 
 # Default props
-export IP=127.0.0.1
+export EXPOSE_IP=127.0.0.1
 export EXTERNAL_VOLUME=~/subsocial_data
 
 # colors
@@ -353,6 +353,13 @@ while :; do
         #################################################
         # Misc
         #################################################
+
+        --direct)
+            EXPOSE_IP="0.0.0.0"
+            printf $COLOR_R'UNSAFE:'$COLOR_Y' Exposing docker ports outside a local machine.\n'
+            printf 'We recommend to use proxy or local http server with SSL\n\n'$COLOR_RESET
+            shift
+            ;;
 
         # Pull latest changes by tag (ref. 'Version variables' or '--tag')
         --force-pull)

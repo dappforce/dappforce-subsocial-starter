@@ -17,7 +17,7 @@ services:
       - node_validator_data:/data
     ports:
       - "127.0.0.1:$SUBSTRATE_VALIDATOR_RPC_PORT:$SUBSTRATE_VALIDATOR_RPC_PORT"
-      - "$SUBSTRATE_VALIDATOR_TCP_PORT:$SUBSTRATE_VALIDATOR_TCP_PORT"
+      - "$EXPOSE_IP:$SUBSTRATE_VALIDATOR_TCP_PORT:$SUBSTRATE_VALIDATOR_TCP_PORT"
 
 volumes:
   node_validator_data:

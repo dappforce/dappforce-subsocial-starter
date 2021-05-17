@@ -40,8 +40,8 @@ services:
     volumes:
       - $OFFCHAIN_STATE:/app/build/state
     ports:
-      - "$OFFCHAIN_API_PORT:3001"
-      - "$OFFCHAIN_WS_PORT:3011"
+      - "$EXPOSE_IP:$OFFCHAIN_API_PORT:3001"
+      - "$EXPOSE_IP:$OFFCHAIN_WS_PORT:3011"
 
 volumes:
   postgres_data:
