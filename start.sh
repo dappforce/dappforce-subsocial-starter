@@ -355,7 +355,7 @@ while :; do
         # Misc
         #################################################
 
-        --expose-global)
+        --unsafe-expose-ports)
             EXPOSE_IP="0.0.0.0"
             printf $COLOR_R'UNSAFE:'$COLOR_Y' Exposing docker ports outside a local machine.\n'
             printf 'We recommend to use proxy or local http server with SSL\n\n'$COLOR_RESET
