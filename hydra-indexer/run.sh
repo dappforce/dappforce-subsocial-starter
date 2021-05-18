@@ -12,8 +12,8 @@ if [[ ! -f ".env" ]]; then
 fi
 
 DOWN_FLAGS="down"
-if [[ $1 == "down" ]]; then
-  [[ $2 == "clean" ]] && DOWN_FLAGS+=" -v"
+if [[ $1 == "--stop" ]]; then
+  [[ $2 == "--clean" ]] && DOWN_FLAGS+=" -v"
   docker-compose -p hydra $DOWN_FLAGS
   exit 0
 fi
@@ -22,4 +22,3 @@ echo "Running docker-compose of Hydra Indexer for Subsocial..."
 docker-compose -p hydra up -d
 
 popd > /dev/null
-exit 0
