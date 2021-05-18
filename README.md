@@ -237,6 +237,7 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--offchain-cors`                  | Specify Offchain CORS (from what URL or IP it will be accessible). Example: `./start.sh --only-offchain --offchain-cors "https://mydomain.com"` |
 | `--offchain-cmd`                   | Override default startup command for offchain image. Example: `./start.sh --only-offchain --offchain-cmd "yarn api"` |
 | `--show-ports`                     | Show ports of the current instance. Example: `./start.sh --instance backup --show-ports` |
+| `--unsafe-expose-ports`            | Make Docker to unsafely expose ports outside of local machine. |
 
 ## License
 

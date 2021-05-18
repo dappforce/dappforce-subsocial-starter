@@ -21,7 +21,7 @@ services:
     volumes:
       - es_data:/usr/share/elasticsearch/data
     ports:
-      - "$ES_PORT:$ES_PORT"
+      - "$EXPOSE_IP:$ES_PORT:$ES_PORT"
     healthcheck:
       test: curl -s $ES_URL
       interval: 10s

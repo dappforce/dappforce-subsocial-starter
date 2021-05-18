@@ -9,7 +9,7 @@ export DIR
 COMPOSE_DIR="$DIR/compose-files"
 
 # Default props
-export IP=127.0.0.1
+export EXPOSE_IP=127.0.0.1
 export EXTERNAL_VOLUME=~/subsocial_data
 
 # colors
@@ -199,7 +199,8 @@ COMPOSE_FILES+=" -f $COMPOSE_DIR/offchain.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
 COMPOSE_FILES+=$SELECTED_SUBSTRATE
-COMPOSE_FILES+=" -f $COMPOSE_DIR/caddy.yml"
+# TODO: temporarily it is not needed to use caddy proxy in starter
+# COMPOSE_FILES+=" -f $COMPOSE_DIR/caddy.yml"
 
 parse_substrate_extra_opts(){
     while :; do
@@ -353,6 +354,12 @@ while :; do
         #################################################
         # Misc
         #################################################
+
+        --unsafe-expose-ports)
+            EXPOSE_IP="0.0.0.0"
+            printf $COLOR_R'UNSAFE:'$COLOR_Y' Exposing docker ports outside a local machine.\n'
+            printf 'We recommend to use proxy or local http server with SSL\n\n'$COLOR_RESET
+            ;;
 
         # Pull latest changes by tag (ref. 'Version variables' or '--tag')
         --force-pull)
@@ -773,16 +780,11 @@ while :; do
                 stop_container offchain
                 stop_container ipfs-cluster
 
+                docker exec $CONT_IPFS_NODE ipfs config --json \
+                    API.HTTPHeaders.Access-Control-Allow-Origin '["'$IPFS_CLUSTER_URL'", "'$OFFCHAIN_URL'"]' 2> /dev/null
+                
                 printf "Wait until IPFS node starts\n"
-
-                until (
-                    docker exec ${CONT_IPFS_NODE} ipfs config --json \
-                        API.HTTPHeaders.Access-Control-Allow-Origin \
-                        '["'$IPFS_CLUSTER_URL'", "'$OFFCHAIN_URL'"]' 2> /dev/null &&
-                    docker restart ${CONT_IPFS_NODE} > /dev/null
-                ); do
-                    sleep 1
-                done
+                docker restart $CONT_IPFS_NODE > /dev/null
                 wait_for_ipfs_node
 
                 printf "Setting up IPFS cluster...\n"
