@@ -1,0 +1,36 @@
+version: "3.4"
+services:
+  hydra-query-node:
+    image: f3joule/subsocial-query-node:$HYDRA_QUERY_NODE_VERSION
+    container_name: $CONT_HYDRA_QUERY_NODE
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      - DB_HOST=$SERVICE_POSTGRES
+      - DB_PORT=$OFFCHAIN_POSTGRES_PORT
+      - GRAPHQL_SERVER_PORT=$GRAPHQL_SERVER_PORT
+      - WARTHOG_APP_PORT=$WARTHOG_APP_PORT
+    ports:
+      - $GRAPHQL_SERVER_PORT:$GRAPHQL_SERVER_PORT
+    depends_on:
+      - $SERVICE_POSTGRES
+
+  hydra-processor:
+    image: f3joule/subsocial-hydra-processor:$HYDRA_PROCESSOR_VERSION
+    container_name: $CONT_HYDRA_PROCESSOR
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - ../.env
+    environment:
+      - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
+      - DB_HOST=localhost
+      - DB_PORT=$OFFCHAIN_POSTGRES_PORT
+      - GRAPHQL_SERVER_PORT=$GRAPHQL_SERVER_PORT
+      - WARTHOG_APP_PORT=$WARTHOG_APP_PORT
+      - POLL_INTERVAL_MS=300
+      - DEBUG=hydra-processor:*
+    command: sh -c "yarn codegen && yarn db:bootstrap && yarn processor:start"
+    depends_on:
+      - $SERVICE_POSTGRES

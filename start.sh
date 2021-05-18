@@ -64,6 +64,8 @@ export IPFS_CLUSTER_VERSION=v0.13.0
 export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
 export SUBSTRATE_NODE_VERSION=latest
+export HYDRA_QUERY_NODE_VERSION=latest
+export HYDRA_PROCESSOR_VERSION=latest
 
 # Docker services
 export SERVICE_POSTGRES=postgres
@@ -74,6 +76,8 @@ export SERVICE_OFFCHAIN=offchain
 export SERVICE_NODE_RPC=node-rpc
 export SERVICE_NODE_VALIDATOR=node-validator
 export SERVICE_CADDY=caddy
+export HYDRA_QUERY_NODE=hydra-query-node
+export HYDRA_PROCESSOR=hydra-processor
 
 set_port_if_available(){
     local var_to_write="$1"
@@ -126,6 +130,9 @@ export_container_ports(){
 
     set_port_if_available "OFFCHAIN_POSTGRES_PORT" 5432
 
+    set_port_if_available "GRAPHQL_SERVER_PORT" 4000
+    export WARTHOG_APP_PORT=$GRAPHQL_SERVER_PORT
+
     export_container_urls
 }
 export_container_ports
@@ -173,6 +180,12 @@ show_ports_info(){
     if [[ -n "$is_running" ]]; then
         echo "PostgreSQL:" "$OFFCHAIN_POSTGRES_PORT"
     fi
+
+    is_running="$(docker ps | grep -wi "$CONT_HYDRA_PROCESSOR")" || printf ""
+    if [[ -n "$is_running" ]]; then
+        echo "Hydra processor:" "$GRAPHQL_SERVER_PORT"
+        echo "Wathog app:" "$WARTHOG_APP_PORT"
+    fi
 }
 
 # Docker container names
@@ -185,6 +198,8 @@ export_container_names(){
     export CONT_NODE_RPC=$PROJECT_NAME-node-rpc
     export CONT_NODE_VALIDATOR=$PROJECT_NAME-node-validator
     export CONT_CADDY=$PROJECT_NAME-proxy
+    export CONT_HYDRA_QUERY_NODE=$PROJECT_NAME-hydra-query-node
+    export CONT_HYDRA_PROCESSOR=$PROJECT_NAME-hydra-processor
 }
 export_container_names
 
@@ -203,6 +218,7 @@ SELECTED_SUBSTRATE=$SUBSTRATE_RPC_COMPOSE$SUBSTRATE_VALIDATOR_COMPOSE
 
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f $COMPOSE_DIR/postgres.yml"
+COMPOSE_FILES+=" -f $COMPOSE_DIR/hydra.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/offchain.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
 COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
@@ -435,6 +451,11 @@ while :; do
             printf $COLOR_Y'Starting without Elasticsearch...\n\n'$COLOR_RESET
             ;;
 
+        --no-hydra)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/hydra.yml/}"
+            printf $COLOR_Y'Starting without Hydra processor and query-node...\n\n'$COLOR_RESET
+            ;;
+
         #################################################
         # Include-only switches
         #################################################
@@ -442,6 +463,7 @@ while :; do
         --only-offchain)
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f $COMPOSE_DIR/postgres.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/hydra.yml"
             COMPOSE_FILES+=" -f $COMPOSE_DIR/offchain.yml"
             COMPOSE_FILES+=" -f $COMPOSE_DIR/elasticsearch.yml"
             COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
@@ -470,6 +492,13 @@ while :; do
             COMPOSE_FILES=""
             COMPOSE_FILES+=" -f $COMPOSE_DIR/ipfs.yml"
             printf $COLOR_Y'Starting only IPFS cluster...\n\n'$COLOR_RESET
+            ;;
+
+        --only-hydra)
+            COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/postgres.yml"
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/hydra.yml"
+            printf $COLOR_Y'Starting Hydra processor and query-node...\n\n'$COLOR_RESET
             ;;
 
         #################################################
