@@ -22,8 +22,8 @@ services:
       - node_rpc_data:/data
     ports:
       - "$EXPOSE_IP:$SUBSTRATE_WS_PORT:$SUBSTRATE_WS_PORT"
-      - "$EXPOSE_IP:$SUBSTRATE_RPC_PORT:$SUBSTRATE_WS_PORT"
-      - "$EXPOSE_IP:$SUBSTRATE_TCP_PORT:$SUBSTRATE_WS_PORT"
+      - "$EXPOSE_IP:$SUBSTRATE_RPC_PORT:$SUBSTRATE_RPC_PORT"
+      - "$EXPOSE_IP:$SUBSTRATE_TCP_PORT:$SUBSTRATE_TCP_PORT"
 
 volumes:
   node_rpc_data:
