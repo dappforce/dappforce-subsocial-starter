@@ -84,7 +84,7 @@ set_port_if_available(){
     final_port="$((port_to_check + offset))"
 
     until ! sudo lsof -i:"$final_port" > /dev/null; do
-        docker ps | grep "0.0.0.0:$final_port" | grep -q "$PROJECT_NAME" && break
+        docker ps | grep "$EXPOSE_IP:$final_port" | grep -q "$PROJECT_NAME" && break
         offset="$((offset + 1))"
         final_port="$((port_to_check + offset))"
     done
