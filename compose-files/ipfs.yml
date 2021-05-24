@@ -10,7 +10,7 @@ services:
     ports:
       - "$EXPOSE_IP:$IPFS_READONLY_PORT:$IPFS_READONLY_PORT"
       - "$EXPOSE_IP:$IPFS_NODE_PORT:$IPFS_NODE_PORT"
-      - "$EXPOSE_IP:$IPFS_SWARM_PORT:$IPFS_SWARM_PORT"
+      - "$IPFS_SWARM_PORT:$IPFS_SWARM_PORT"
 
   ipfs-cluster:
     image: ipfs/ipfs-cluster:$IPFS_CLUSTER_VERSION

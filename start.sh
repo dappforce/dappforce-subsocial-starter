@@ -84,7 +84,7 @@ set_port_if_available(){
     final_port="$((port_to_check + offset))"
 
     until ! sudo lsof -i:"$final_port" > /dev/null; do
-        docker ps | grep "$EXPOSE_IP:$final_port" | grep -q "$PROJECT_NAME" && break
+        docker ps | grep ":$final_port->" | grep -q " $PROJECT_NAME" && break
         offset="$((offset + 1))"
         final_port="$((port_to_check + offset))"
     done
@@ -780,10 +780,12 @@ while :; do
                 stop_container offchain
                 stop_container ipfs-cluster
 
+                printf "Wait until IPFS node starts\n"
+                wait_for_ipfs_node
+
                 docker exec $CONT_IPFS_NODE ipfs config --json \
                     API.HTTPHeaders.Access-Control-Allow-Origin '["'$IPFS_CLUSTER_URL'", "'$OFFCHAIN_URL'"]' 2> /dev/null
-                
-                printf "Wait until IPFS node starts\n"
+
                 docker restart $CONT_IPFS_NODE > /dev/null
                 wait_for_ipfs_node
 
