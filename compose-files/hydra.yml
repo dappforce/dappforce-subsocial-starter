@@ -27,6 +27,7 @@ services:
       - ../.env
     environment:
       - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
+      - IPFS_READ_ONLY_NODE_URL=$IPFS_READ_ONLY_NODE_URL
       - DB_HOST=$SERVICE_POSTGRES
       - DB_PORT=$OFFCHAIN_POSTGRES_PORT
       - GRAPHQL_SERVER_HOST=localhost
