@@ -64,8 +64,8 @@ export IPFS_CLUSTER_VERSION=v0.13.0
 export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
 export SUBSTRATE_NODE_VERSION=latest
-export HYDRA_QUERY_NODE_VERSION=subnets
-export HYDRA_PROCESSOR_VERSION=subnets
+export HYDRA_QUERY_NODE_VERSION=latest
+export HYDRA_PROCESSOR_VERSION=latest
 
 # Docker services
 export SERVICE_POSTGRES=postgres
