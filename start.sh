@@ -64,8 +64,8 @@ export IPFS_CLUSTER_VERSION=v0.13.0
 export IPFS_NODE_VERSION=v0.5.1
 export OFFCHAIN_VERSION=latest
 export SUBSTRATE_NODE_VERSION=latest
-export HYDRA_QUERY_NODE_VERSION=latest
-export HYDRA_PROCESSOR_VERSION=latest
+export HYDRA_QUERY_NODE_VERSION=subnets
+export HYDRA_PROCESSOR_VERSION=subnets
 
 # Docker services
 export SERVICE_POSTGRES=postgres
@@ -76,8 +76,8 @@ export SERVICE_OFFCHAIN=offchain
 export SERVICE_NODE_RPC=node-rpc
 export SERVICE_NODE_VALIDATOR=node-validator
 export SERVICE_CADDY=caddy
-export HYDRA_QUERY_NODE=hydra-query-node
-export HYDRA_PROCESSOR=hydra-processor
+export SERVICE_HYDRA_QUERY_NODE=hydra-query-node
+export SERVICE_HYDRA_PROCESSOR=hydra-processor
 
 set_port_if_available(){
     local var_to_write="$1"

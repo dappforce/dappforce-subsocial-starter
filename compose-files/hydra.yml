@@ -9,10 +9,12 @@ services:
     environment:
       - DB_HOST=$SERVICE_POSTGRES
       - DB_PORT=$OFFCHAIN_POSTGRES_PORT
+      - GRAPHQL_SERVER_HOST=$SERVICE_HYDRA_PROCESSOR
       - GRAPHQL_SERVER_PORT=$GRAPHQL_SERVER_PORT
+      - WARTHOG_APP_HOST=$SERVICE_HYDRA_PROCESSOR
       - WARTHOG_APP_PORT=$WARTHOG_APP_PORT
     ports:
-      - $GRAPHQL_SERVER_PORT:$GRAPHQL_SERVER_PORT
+      - $EXPOSE_IP:$GRAPHQL_SERVER_PORT:$GRAPHQL_SERVER_PORT
     depends_on:
       - $SERVICE_POSTGRES
 
@@ -20,17 +22,23 @@ services:
     image: f3joule/subsocial-hydra-processor:$HYDRA_PROCESSOR_VERSION
     container_name: $CONT_HYDRA_PROCESSOR
     restart: unless-stopped
-    network_mode: host
+    command: sh -c "yarn db:bootstrap && yarn processor:start"
     env_file:
       - ../.env
     environment:
       - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
-      - DB_HOST=localhost
+      - DB_HOST=$SERVICE_POSTGRES
       - DB_PORT=$OFFCHAIN_POSTGRES_PORT
+      - GRAPHQL_SERVER_HOST=localhost
       - GRAPHQL_SERVER_PORT=$GRAPHQL_SERVER_PORT
+      - WARTHOG_APP_HOST=localhost
       - WARTHOG_APP_PORT=$WARTHOG_APP_PORT
+      - WARTHOG_DB_DATABASE=$DB_NAME
+      - WARTHOG_DB_USERNAME=$DB_USER
+      - WARTHOG_DB_PASSWORD=$DB_PASS
+      - WARTHOG_DB_HOST=$SERVICE_POSTGRES
+      - WARTHOG_DB_PORT=$OFFCHAIN_POSTGRES_PORT
       - POLL_INTERVAL_MS=300
       - DEBUG=hydra-processor:*
-    command: sh -c "yarn codegen && yarn db:bootstrap && yarn processor:start"
     depends_on:
       - $SERVICE_POSTGRES
