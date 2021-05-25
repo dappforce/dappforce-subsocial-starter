@@ -11,8 +11,6 @@ services:
       - DB_PORT=$OFFCHAIN_POSTGRES_PORT
       - GRAPHQL_SERVER_HOST=$SERVICE_HYDRA_PROCESSOR
       - GRAPHQL_SERVER_PORT=$GRAPHQL_SERVER_PORT
-      - WARTHOG_APP_HOST=$SERVICE_HYDRA_PROCESSOR
-      - WARTHOG_APP_PORT=$WARTHOG_APP_PORT
     ports:
       - $EXPOSE_IP:$GRAPHQL_SERVER_PORT:$GRAPHQL_SERVER_PORT
     depends_on:
@@ -22,7 +20,6 @@ services:
     image: f3joule/subsocial-hydra-processor:$HYDRA_PROCESSOR_VERSION
     container_name: $CONT_HYDRA_PROCESSOR
     restart: unless-stopped
-    command: sh -c "yarn db:bootstrap && yarn processor:start"
     env_file:
       - ../.env
     environment:
