@@ -456,6 +456,11 @@ while :; do
             printf $COLOR_Y'Starting without Hydra processor and query-node...\n\n'$COLOR_RESET
             ;;
 
+        --no-postgres)
+            COMPOSE_FILES="${COMPOSE_FILES/ -f ${COMPOSE_DIR}\/postgres.yml/}"
+            printf $COLOR_Y'Starting without PostgreSQL database...\n\n'$COLOR_RESET
+            ;;
+
         #################################################
         # Include-only switches
         #################################################
@@ -499,6 +504,12 @@ while :; do
             COMPOSE_FILES+=" -f $COMPOSE_DIR/postgres.yml"
             COMPOSE_FILES+=" -f $COMPOSE_DIR/hydra.yml"
             printf $COLOR_Y'Starting Hydra processor and query-node...\n\n'$COLOR_RESET
+            ;;
+
+        --only-postgres)
+            COMPOSE_FILES=""
+            COMPOSE_FILES+=" -f $COMPOSE_DIR/postgres.yml"
+            printf $COLOR_Y'Starting PostgreSQL database...\n\n'$COLOR_RESET
             ;;
 
         #################################################
