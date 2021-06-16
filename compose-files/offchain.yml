@@ -1,16 +1,5 @@
-version: "3.2"
+version: "3.4"
 services:
-  postgres:
-    image: postgres:$POSTGRES_VERSION
-    container_name: $CONT_POSTGRES
-    restart: on-failure
-    environment:
-      POSTGRES_DB: subsocial
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: 1986
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
   offchain:
     image: dappforce/subsocial-offchain:$OFFCHAIN_VERSION
     container_name: $CONT_OFFCHAIN
@@ -20,6 +9,10 @@ services:
       - NODE_ENV=production
       - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
       - PGHOST=$SERVICE_POSTGRES
+      - PGDATABASE=$DB_NAME
+      - PGUSER=$DB_USER
+      - PGPASSWORD=$DB_PASS
+      - PGPORT=$OFFCHAIN_POSTGRES_PORT
       - ES_NODE_URL=$ES_URL
       - ES_OFFCHAIN_USER=$ES_OFFCHAIN_USER
       - ES_OFFCHAIN_PASSWORD=$ES_OFFCHAIN_PASSWORD
@@ -42,6 +35,3 @@ services:
     ports:
       - "$EXPOSE_IP:$OFFCHAIN_API_PORT:3001"
       - "$EXPOSE_IP:$OFFCHAIN_WS_PORT:3011"
-
-volumes:
-  postgres_data:

@@ -1,4 +1,4 @@
-version: "3.2"
+version: "3.4"
 services:
   ipfs-node:
     image: ipfs/go-ipfs:$IPFS_NODE_VERSION

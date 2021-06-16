@@ -1,0 +1,18 @@
+version: "3.4"
+services:
+  postgres:
+    image: postgres:$POSTGRES_VERSION
+    container_name: $CONT_POSTGRES
+    restart: always
+    command: -p $OFFCHAIN_POSTGRES_PORT
+    environment:
+      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASS
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "$EXPOSE_IP:$OFFCHAIN_POSTGRES_PORT:$OFFCHAIN_POSTGRES_PORT"
+
+volumes:
+  postgres_data:

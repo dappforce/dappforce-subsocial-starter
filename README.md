@@ -110,11 +110,13 @@ If you want not only stop containers, but also clean data, go with:
 
 ### Offchain services
 
-| Container name            | External Ports | Local URL                                       | Description                                                  |
-| ------------------------- | -------------- | ----------------------------------------------- | ------------------------------------------------------------ |
-| `subsocial-offchain`      | `3001`, `3011` | http://localhost:3001/v1                        | [Subsocial Offchain](https://github.com/dappforce/dappforce-subsocial-offchain) |
-| `subsocial-elasticsearch` | `9200`         | http://localhost:9200                           | [ElasticSearch](https://www.elastic.co/what-is/elasticsearch) |
-| `subsocial-postgres`      |                |                                                 | [PostgreSQL](https://www.postgresql.org/about/)              |
+| Container name               | External Ports | Local URL                   | Description                                                                     |
+| ---------------------------- | -------------- | --------------------------- | ------------------------------------------------------------------------------- |
+| `subsocial-offchain`         | `3001`, `3011` | http://localhost:3001/v1    | [Subsocial Offchain](https://github.com/dappforce/dappforce-subsocial-offchain) |
+| `subsocial-elasticsearch`    | `9200`         | http://localhost:9200       | [ElasticSearch](https://www.elastic.co/what-is/elasticsearch)                   |
+| `subsocial-postgres`         |                |                             | [PostgreSQL](https://www.postgresql.org/about/)                                 |
+| `subsocial-hydra-query-node` | `4000`         | http://localhost:4000       | [Subsocial Hydra Processor](https://github.com/dappforce/subsocial-graphql)     |
+| `subsocial-hydra-processor`  |                |                             | [Subsocial Hydra Query Node](https://github.com/dappforce/subsocial-graphql)    |
 
 #### Start containers
 
@@ -218,10 +220,12 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--no-substrate`                   | Start Subsocial stack without Substrate node.                 |
 | `--no-proxy`                       | Start Subsocial stack without Caddy server proxy.             |
 | `--no-ipfs`                        | Start Subsocial stack without IPFS Cluster.                   |
+| `--no-hydra`                       | Start Subsocial stack without Hydra processor and query-node. |
 | `--only-offchain`                  | Start (or update) only Offchain container.                    |
 | `--only-substrate`                 | Start (or update) only Substrate node's container.            |
 | `--only-proxy`                     | Start (or update) only Caddy server proxy container.          |
 | `--only-ipfs`                      | Start (or update) only IPFS Cluster container.                |
+| `--only-hydra`                     | Start (or update) only Hydra processor and query-node.        |
 | `--substrate-url`                  | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944` |
 | `--offchain-url`                   | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001` |
 | `--elastic-url`                    | Specify ElasticSearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200` |

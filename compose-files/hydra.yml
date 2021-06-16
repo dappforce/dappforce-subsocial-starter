@@ -1,0 +1,42 @@
+version: "3.4"
+services:
+  hydra-query-node:
+    image: f3joule/subsocial-query-node:$HYDRA_QUERY_NODE_VERSION
+    container_name: $CONT_HYDRA_QUERY_NODE
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      - DB_HOST=$SERVICE_POSTGRES
+      - DB_PORT=$OFFCHAIN_POSTGRES_PORT
+      - GRAPHQL_SERVER_HOST=$SERVICE_HYDRA_PROCESSOR
+      - GRAPHQL_SERVER_PORT=$GRAPHQL_SERVER_PORT
+    ports:
+      - $EXPOSE_IP:$GRAPHQL_SERVER_PORT:$GRAPHQL_SERVER_PORT
+    depends_on:
+      - $SERVICE_POSTGRES
+
+  hydra-processor:
+    image: f3joule/subsocial-hydra-processor:$HYDRA_PROCESSOR_VERSION
+    container_name: $CONT_HYDRA_PROCESSOR
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      - SUBSTRATE_URL=$SUBSTRATE_RPC_URL
+      - IPFS_READ_ONLY_NODE_URL=$IPFS_READ_ONLY_NODE_URL
+      - DB_HOST=$SERVICE_POSTGRES
+      - DB_PORT=$OFFCHAIN_POSTGRES_PORT
+      - GRAPHQL_SERVER_HOST=localhost
+      - GRAPHQL_SERVER_PORT=$GRAPHQL_SERVER_PORT
+      - WARTHOG_APP_HOST=localhost
+      - WARTHOG_APP_PORT=$WARTHOG_APP_PORT
+      - WARTHOG_DB_DATABASE=$DB_NAME
+      - WARTHOG_DB_USERNAME=$DB_USER
+      - WARTHOG_DB_PASSWORD=$DB_PASS
+      - WARTHOG_DB_HOST=$SERVICE_POSTGRES
+      - WARTHOG_DB_PORT=$OFFCHAIN_POSTGRES_PORT
+      - POLL_INTERVAL_MS=300
+      - DEBUG=hydra-processor:*
+    depends_on:
+      - $SERVICE_POSTGRES
