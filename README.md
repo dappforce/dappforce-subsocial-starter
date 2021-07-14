@@ -221,11 +221,13 @@ The [start.sh](start.sh) script comes with a set of options for customizing proj
 | `--no-proxy`                       | Start Subsocial stack without Caddy server proxy.             |
 | `--no-ipfs`                        | Start Subsocial stack without IPFS Cluster.                   |
 | `--no-hydra`                       | Start Subsocial stack without Hydra processor and query-node. |
+| `--no-postgres`                    | Start Subsocial stack without PostgreSQL database.            |
 | `--only-offchain`                  | Start (or update) only Offchain container.                    |
 | `--only-substrate`                 | Start (or update) only Substrate node's container.            |
 | `--only-proxy`                     | Start (or update) only Caddy server proxy container.          |
 | `--only-ipfs`                      | Start (or update) only IPFS Cluster container.                |
 | `--only-hydra`                     | Start (or update) only Hydra processor and query-node.        |
+| `--only-postgres`                  | Start (or update) only PostgreSQL database.                   |
 | `--substrate-url`                  | Specify Substrate websocket URL. Example: `./start.sh --global --substrate-url ws://172.15.0.20:9944` |
 | `--offchain-url`                   | Specify Offchain URL. Example: `./start.sh --global --offchain-url http://172.15.0.3:3001` |
 | `--elastic-url`                    | Specify ElasticSearch cluster URL. Example: `./start.sh --global --elastic-url http://172.15.0.5:9200` |
